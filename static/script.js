@@ -26,7 +26,7 @@ document.getElementById('orderNowBtn').addEventListener('click', async () => {
             // Clear the cart
             cart = [];
             updateCartDisplay();
-            alert(`Order placed successfully! Customer #${result.customer_number}`);
+            alert(`Order placed successfully!\nDaily Customer #${result.daily_customer_number}\nMonthly Customer #${result.monthly_customer_number}`);
             // Redirect to order history page
             window.location.href = '/order_history';
         } else {

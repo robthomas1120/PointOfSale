@@ -51,7 +51,8 @@
                         <label>Sort by:</label>
                         <select id="sortBy" class="filter-input">
                             <option value="date">Date</option>
-                            <option value="customerNumber">Customer Number</option>
+                            <option value="dailyCustomerNumber">Daily Customer Number</option>
+                            <option value="monthlyCustomerNumber">Monthly Customer Number</option>
                             <option value="totalAmount">Total Amount</option>
                         </select>
                     </div>
@@ -75,11 +76,12 @@
             <table id="ordersTable">
                 <thead>
                     <tr>
-                        <th>Customer #</th>
+                        <th>Daily Customer #</th>
                         <th>Date</th>
                         <th>Time</th>
                         <th>Order Details</th>
                         <th>Total Amount</th>
+                        <th>Monthly Customer #</th>
                     </tr>
                 </thead>
                 <tbody id="ordersList">

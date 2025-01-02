@@ -62,7 +62,7 @@ def init_db():
    conn.close()
 
 @app.route('/')
-def index():  
+def index():
    return render_template('index.html')
 
 @app.route('/add')

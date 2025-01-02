@@ -56,8 +56,11 @@ function applySort() {
             case 'date':
                 comparison = new Date(a.date) - new Date(b.date);
                 break;
-            case 'customerNumber':
-                comparison = a.customerNumber - b.customerNumber;
+            case 'dailyCustomerNumber':
+                comparison = a.dailyCustomerNumber - b.dailyCustomerNumber;
+                break;
+            case 'monthlyCustomerNumber':
+                comparison = a.monthlyCustomerNumber - b.monthlyCustomerNumber;
                 break;
             case 'totalAmount':
                 comparison = a.totalAmount - b.totalAmount;
@@ -76,7 +79,7 @@ function displayOrders() {
     if (filteredOrders.length === 0) {
         ordersList.innerHTML = `
             <tr>
-                <td colspan="5">No orders found</td>
+                <td colspan="6">No orders found</td>
             </tr>
         `;
         return;
@@ -84,16 +87,18 @@ function displayOrders() {
     
     ordersList.innerHTML = filteredOrders.map(order => `
         <tr>
-            <td>Customer #${order.customerNumber}</td>
+            <td>${order.dailyCustomerNumber}</td>
             <td>${formatDate(order.date)}</td>
             <td>${formatTime(order.date)}</td>
             <td class="order-details">
                 ${formatOrderItems(order.items)}
             </td>
             <td>₱${order.totalAmount.toFixed(2)}</td>
+            <td>${order.monthlyCustomerNumber}</td>
         </tr>
     `).join('');
 }
+
 
 function applyDateFilter() {
     const startDate = document.getElementById('startDate').value;
