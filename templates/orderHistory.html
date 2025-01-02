@@ -5,12 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Order History</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='orderHistory.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+    <script src="{{ url_for('static', filename='ExportDialog.js') }}"></script>
+    <script src="{{ url_for('static', filename='orderHistory.js') }}"></script>
 </head>
 <body>
     <div class="container">
         <header class="header">
             <h1>Order History</h1>
             <div class="header-buttons">
+                <button id="exportButton" class="filter-button">Export</button>
                 <button id="resetFilters" class="filter-button reset">Reset Filters</button>
                 <a href="/" class="back-button">Back to POS</a>
             </div>

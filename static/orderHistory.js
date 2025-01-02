@@ -1,5 +1,6 @@
 let orderHistory = [];
 let filteredOrders = [];
+let exportDialog;
 
 async function loadOrders() {
     try {
@@ -142,7 +143,22 @@ function resetFilters() {
 document.addEventListener('DOMContentLoaded', () => {
     loadOrders();
     
+    // Initialize export dialog
+    exportDialog = new ExportDialog();
+    
+    // Add all event listeners
     document.getElementById('applySort').addEventListener('click', applySort);
     document.getElementById('applyDateFilter').addEventListener('click', applyDateFilter);
     document.getElementById('resetFilters').addEventListener('click', resetFilters);
+    document.getElementById('exportButton').addEventListener('click', () => {
+        const currentFilters = {
+            startDate: document.getElementById('startDate').value,
+            endDate: document.getElementById('endDate').value,
+            startTime: document.getElementById('startTime').value,
+            endTime: document.getElementById('endTime').value,
+            sortBy: document.getElementById('sortBy').value,
+            sortOrder: document.getElementById('sortOrder').value
+        };
+        exportDialog.show(currentFilters, filteredOrders);  // Pass filteredOrders here
+    });
 });
