@@ -135,7 +135,9 @@ class ExportDialog {
             'Daily #': order.dailyCustomerNumber,
             'Date': order.date,
             'Time': order.time,
-            'Order Details': order.orderDetails.split('\n').join('\r\n'),  // Proper Excel line breaks
+            'Order Details': order.items.map(item => 
+                `${item.name} x${item.quantity} = P${(item.price * item.quantity).toFixed(2)}`
+            ).join('\r\n'),  // Join with Excel line breaks
             'Total Amount': order.totalAmount,
             'Monthly #': order.monthlyCustomerNumber
         }));
@@ -192,10 +194,10 @@ class ExportDialog {
             };
         }
     
-        // Adjust row heights (approximate)
+        // Adjust row heights (make them taller to accommodate multiple lines)
         const rows = [];
         for (let i = 0; i <= range.e.r; i++) {
-            rows.push({ hpt: 25 }); // Set default row height
+            rows.push({ hpt: 45 }); // Increased row height to accommodate multiple lines
         }
         ws['!rows'] = rows;
     
