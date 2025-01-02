@@ -38,6 +38,42 @@ document.getElementById('orderNowBtn').addEventListener('click', async () => {
     }
 });
 
+function updatePrice(itemName, currentPrice) {
+    const newPrice = prompt(`Enter new price for ${itemName} (current: ₱${currentPrice}):`, currentPrice);
+    
+    if (newPrice === null) return; // User cancelled
+    
+    const numericPrice = parseFloat(newPrice);
+    if (isNaN(numericPrice) || numericPrice <= 0) {
+        alert('Please enter a valid price greater than 0');
+        return;
+    }
+
+    fetch('/update_price', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            item_name: itemName,
+            new_price: numericPrice
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(`Price updated successfully for ${itemName}`);
+            loadItems(); // Refresh the display
+        } else {
+            alert('Error updating price');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error updating price');
+    });
+}
+
 async function loadItems() {
     try {
         const response = await fetch('/get_orders/1');
@@ -114,14 +150,29 @@ function handleSearch(e) {
 
 function displayFilteredItems(items) {
     const itemsList = document.getElementById('itemsList');
+    const isPriceMode = document.getElementById('setPriceBtn').classList.contains('active');
+    
     itemsList.innerHTML = items.map(item => `
-        <tr class="menu-item" onclick="addToCart('${item.item_name}', ${item.price}, '${item.image_path}')">
+        <tr class="menu-item" onclick="${isPriceMode ? 
+            `updatePrice('${item.item_name}', ${item.price})` : 
+            `addToCart('${item.item_name}', ${item.price}, '${item.image_path}')`}">
             <td><img src="/static/uploads/${item.image_path}" alt="${item.item_name}"></td>
             <td>${item.item_name}</td>
             <td>₱${item.price}</td>
         </tr>
     `).join('');
 }
+
+document.getElementById('setPriceBtn').addEventListener('click', function() {
+    this.classList.toggle('active');
+    if (this.classList.contains('active')) {
+        this.style.backgroundColor = '#ff9800';
+        alert('Price Set Mode: Click on an item to update its price');
+    } else {
+        this.style.backgroundColor = '';
+    }
+    displayFilteredItems(allItems);
+});
 
 // Initialize the menu
 loadItems();

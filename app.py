@@ -69,6 +69,29 @@ def index():
 def add_item_page():
     return render_template('add_item.html')
 
+@app.route('/update_price', methods=['POST'])
+def update_price():
+    try:
+        data = request.json
+        item_name = data['item_name']
+        new_price = data['new_price']
+        
+        conn = sqlite3.connect('pos.db')
+        c = conn.cursor()
+        
+        c.execute('''
+            UPDATE items 
+            SET price = ? 
+            WHERE item_name = ?
+        ''', (new_price, item_name))
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/order_history')
 def order_history():
     return render_template('orderHistory.html')
