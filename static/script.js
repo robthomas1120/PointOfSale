@@ -3,6 +3,41 @@ let cart = [];
 let allItems = []; // Store all items
 let searchInput; // Reference to search input
 
+document.getElementById('orderNowBtn').addEventListener('click', async () => {
+    if (cart.length === 0) return;
+
+    const order = {
+        items: cart,
+        totalAmount: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+        date: new Date().toISOString()
+    };
+
+    try {
+        const response = await fetch('/place_order', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(order)
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+            // Clear the cart
+            cart = [];
+            updateCartDisplay();
+            alert(`Order placed successfully! Customer #${result.customer_number}`);
+            // Redirect to order history page
+            window.location.href = '/order_history';
+        } else {
+            alert('Error placing order. Please try again.');
+        }
+    } catch (error) {
+        console.error('Error placing order:', error);
+        alert('Error placing order. Please try again.');
+    }
+});
+
 async function loadItems() {
     try {
         const response = await fetch('/get_orders/1');
@@ -64,6 +99,9 @@ function updateCartDisplay() {
     
     const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     cartTotal.textContent = total.toFixed(2);
+
+    const orderButton = document.getElementById('orderNowBtn');
+    orderButton.disabled = cart.length === 0;
 }
 
 function handleSearch(e) {

@@ -48,7 +48,14 @@ body {
     color: var(--text-primary);
 }
 
-.add-button {
+/* New Button Group Styles */
+.button-group {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.add-button, .history-button {
     background-color: var(--accent-color);
     color: white;
     padding: 12px 24px;
@@ -58,7 +65,7 @@ body {
     transition: all 0.3s ease;
 }
 
-.add-button:hover {
+.add-button:hover, .history-button:hover {
     background-color: var(--accent-hover);
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
@@ -184,24 +191,7 @@ button:hover {
     box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
 }
 
-/* Scrollbar Styling */
-::-webkit-scrollbar {
-    width: 10px;
-}
-
-::-webkit-scrollbar-track {
-    background: var(--bg-secondary);
-}
-
-::-webkit-scrollbar-thumb {
-    background: var(--border-color);
-    border-radius: 5px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: var(--text-secondary);
-}
-
+/* Search Bar Styles */
 .search-container {
     margin-bottom: 20px;
 }
@@ -225,4 +215,49 @@ button:hover {
 
 .search-bar::placeholder {
     color: var(--text-secondary);
+}
+
+.order-button {
+    width: 100%;
+    margin-top: 20px;
+    background-color: var(--accent-color);
+    color: white;
+    padding: 15px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.order-button:hover {
+    background-color: var(--accent-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
+}
+
+.order-button:disabled {
+    background-color: var(--text-secondary);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
 }

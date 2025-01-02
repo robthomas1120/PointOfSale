@@ -13,6 +13,7 @@
             <div class="header">
                 <h2>Menu Items</h2>
                 <a href="{{ url_for('add_item_page') }}" class="add-button">Add Item</a>
+                <a href="{{ url_for('order_history') }}" class="history-button">Order History</a>
             </div>
             
             <!-- Search Bar -->
@@ -50,6 +51,7 @@
             <!-- Total Section -->
             <div class="total-section">
                 <h3>Total Order: ₱<span id="cartTotal">0.00</span></h3>
+                <button id="orderNowBtn" class="order-button">Order Now</button>
             </div>
         </section>
     </div>
