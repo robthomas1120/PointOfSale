@@ -1,6 +1,6 @@
 let orderHistory = [];
+let filteredOrders = [];
 
-// Function to load orders from server
 async function loadOrders() {
     try {
         const response = await fetch('/get_orders_history');
@@ -8,8 +8,8 @@ async function loadOrders() {
             throw new Error('Failed to fetch orders');
         }
         const orders = await response.json();
-        console.log('Loaded orders:', orders); // Debug log
         orderHistory = orders;
+        filteredOrders = [...orders];
         displayOrders();
     } catch (error) {
         console.error('Error loading orders:', error);
@@ -21,7 +21,6 @@ async function loadOrders() {
     }
 }
 
-// Function to format date
 function formatDate(date) {
     const d = new Date(date);
     const month = String(d.getMonth() + 1).padStart(2, '0');
@@ -30,7 +29,6 @@ function formatDate(date) {
     return `${month}/${day}/${year}`;
 }
 
-// Function to format time in 12-hour format
 function formatTime(date) {
     const d = new Date(date);
     return d.toLocaleString('en-US', {
@@ -41,11 +39,41 @@ function formatTime(date) {
     });
 }
 
-// Function to display orders
+function formatOrderItems(items) {
+    return items.map(item => 
+        `${item.name} x${item.quantity} = ₱${(item.price * item.quantity).toFixed(2)}`
+    ).join('<br>');
+}
+
+function applySort() {
+    const sortBy = document.getElementById('sortBy').value;
+    const sortOrder = document.getElementById('sortOrder').value;
+
+    filteredOrders.sort((a, b) => {
+        let comparison = 0;
+        
+        switch (sortBy) {
+            case 'date':
+                comparison = new Date(a.date) - new Date(b.date);
+                break;
+            case 'customerNumber':
+                comparison = a.customerNumber - b.customerNumber;
+                break;
+            case 'totalAmount':
+                comparison = a.totalAmount - b.totalAmount;
+                break;
+        }
+
+        return sortOrder === 'asc' ? comparison : -comparison;
+    });
+
+    displayOrders();
+}
+
 function displayOrders() {
     const ordersList = document.getElementById('ordersList');
     
-    if (orderHistory.length === 0) {
+    if (filteredOrders.length === 0) {
         ordersList.innerHTML = `
             <tr>
                 <td colspan="5">No orders found</td>
@@ -54,23 +82,62 @@ function displayOrders() {
         return;
     }
     
-    ordersList.innerHTML = orderHistory.map(order => `
+    ordersList.innerHTML = filteredOrders.map(order => `
         <tr>
             <td>Customer #${order.customerNumber}</td>
             <td>${formatDate(order.date)}</td>
             <td>${formatTime(order.date)}</td>
-            <td>
-                ${order.items.map(item => 
-                    `${item.name} (x${item.quantity})`
-                ).join(', ')}
+            <td class="order-details">
+                ${formatOrderItems(order.items)}
             </td>
             <td>₱${order.totalAmount.toFixed(2)}</td>
         </tr>
     `).join('');
 }
 
-// Add event listener for when the page loads
+function applyDateFilter() {
+    const startDate = document.getElementById('startDate').value;
+    const endDate = document.getElementById('endDate').value;
+    const startTime = document.getElementById('startTime').value;
+    const endTime = document.getElementById('endTime').value;
+
+    filteredOrders = orderHistory.filter(order => {
+        const orderDate = new Date(order.date);
+        const orderTime = orderDate.toTimeString().slice(0, 8);
+        
+        if (startDate && endDate) {
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            end.setHours(23, 59, 59);
+            if (orderDate < start || orderDate > end) return false;
+        }
+
+        if (startTime && endTime) {
+            if (orderTime < startTime || orderTime > endTime) return false;
+        }
+
+        return true;
+    });
+
+    displayOrders();
+}
+
+function resetFilters() {
+    document.getElementById('startDate').value = '';
+    document.getElementById('endDate').value = '';
+    document.getElementById('startTime').value = '';
+    document.getElementById('endTime').value = '';
+    document.getElementById('sortBy').value = 'date';
+    document.getElementById('sortOrder').value = 'desc';
+
+    filteredOrders = [...orderHistory];
+    displayOrders();
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('Page loaded, fetching orders...'); // Debug log
     loadOrders();
+    
+    document.getElementById('applySort').addEventListener('click', applySort);
+    document.getElementById('applyDateFilter').addEventListener('click', applyDateFilter);
+    document.getElementById('resetFilters').addEventListener('click', resetFilters);
 });

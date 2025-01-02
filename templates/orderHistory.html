@@ -10,8 +10,66 @@
     <div class="container">
         <header class="header">
             <h1>Order History</h1>
-            <a href="/" class="back-button">Back to POS</a>  <!-- Changed to use direct path -->
+            <div class="header-buttons">
+                <button id="resetFilters" class="filter-button reset">Reset Filters</button>
+                <a href="/" class="back-button">Back to POS</a>
+            </div>
         </header>
+
+        <div class="filter-container">
+
+            <!-- Date Range Section -->
+            <div class="filter-section">
+                <div class="section-content">
+                    <div class="date-filter-group">
+                        <div class="filter-group">
+                            <label>Date Range:</label>
+                            <div class="range-inputs">
+                                <input type="date" id="startDate" class="filter-input">
+                                <span class="range-separator">to</span>
+                                <input type="date" id="endDate" class="filter-input">
+                            </div>
+                        </div>
+
+                        <div class="filter-group">
+                            <label>Time Range:</label>
+                            <div class="range-inputs">
+                                <input type="time" id="startTime" class="filter-input">
+                                <span class="range-separator">to</span>
+                                <input type="time" id="endTime" class="filter-input">
+                            </div>
+                        </div>
+                    </div>
+                    <button id="applyDateFilter" class="filter-button">Apply Range</button>
+                </div>
+            </div>
+
+            <!-- Sort Section -->
+            <div class="filter-section">
+                <div class="section-content">
+                    <div class="filter-group">
+                        <label>Sort by:</label>
+                        <select id="sortBy" class="filter-input">
+                            <option value="date">Date</option>
+                            <option value="customerNumber">Customer Number</option>
+                            <option value="totalAmount">Total Amount</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label>Order:</label>
+                        <select id="sortOrder" class="filter-input">
+                            <option value="desc">Descending</option>
+                            <option value="asc">Ascending</option>
+                        </select>
+                    </div>
+
+                    <button id="applySort" class="filter-button">Apply Sort</button>
+                </div>
+            </div>
+
+            
+        </div>
 
         <div class="orders-container">
             <table id="ordersTable">
@@ -20,7 +78,7 @@
                         <th>Customer #</th>
                         <th>Date</th>
                         <th>Time</th>
-                        <th>Orders</th>
+                        <th>Order Details</th>
                         <th>Total Amount</th>
                     </tr>
                 </thead>

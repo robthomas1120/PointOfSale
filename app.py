@@ -24,29 +24,39 @@ def init_db():
        )
    ''')
    
-   # Create orders table
+   # Create orders table with both daily and monthly customer numbers
    c.execute('''
        CREATE TABLE IF NOT EXISTS orders (
            id INTEGER PRIMARY KEY AUTOINCREMENT,
-           customer_number INTEGER,
+           daily_customer_number INTEGER,
+           monthly_customer_number INTEGER,
            items TEXT,
            total_amount REAL,
            order_date DATETIME DEFAULT CURRENT_TIMESTAMP
        )
    ''')
    
-   # Create a sequence for customer numbers
+   # Modified customer_sequence table to track both daily and monthly sequences
    c.execute('''
        CREATE TABLE IF NOT EXISTS customer_sequence (
            id INTEGER PRIMARY KEY,
-           next_value INTEGER
+           daily_value INTEGER,
+           monthly_value INTEGER,
+           last_daily_reset DATE,
+           last_monthly_reset DATE
        )
    ''')
    
    # Initialize the sequence if it's empty
-   c.execute('SELECT next_value FROM customer_sequence WHERE id = 1')
+   c.execute('SELECT daily_value FROM customer_sequence WHERE id = 1')
    if not c.fetchone():
-       c.execute('INSERT INTO customer_sequence (id, next_value) VALUES (1, 1)')
+       today = datetime.now().date()
+       c.execute('''
+           INSERT INTO customer_sequence (
+               id, daily_value, monthly_value, 
+               last_daily_reset, last_monthly_reset
+           ) VALUES (1, 1, 1, ?, ?)
+       ''', (today.strftime('%Y-%m-%d'), today.strftime('%Y-%m-%d')))
    
    conn.commit()
    conn.close()
@@ -90,6 +100,60 @@ def add_order():
 
    return jsonify({'success': True, 'image_path': filename})
 
+def get_and_update_customer_numbers():
+    conn = sqlite3.connect('pos.db')
+    c = conn.cursor()
+    
+    try:
+        # Get current sequence info
+        c.execute('''
+            SELECT daily_value, monthly_value, 
+                   last_daily_reset, last_monthly_reset 
+            FROM customer_sequence WHERE id = 1
+        ''')
+        daily_value, monthly_value, last_daily_reset, last_monthly_reset = c.fetchone()
+        
+        # Convert stored dates to date objects
+        last_daily = datetime.strptime(last_daily_reset, '%Y-%m-%d').date()
+        last_monthly = datetime.strptime(last_monthly_reset, '%Y-%m-%d').date()
+        today = datetime.now().date()
+        
+        # Check if we need to reset daily sequence
+        if today > last_daily:
+            # Reset daily sequence to 1 and update last_daily_reset
+            c.execute('''
+                UPDATE customer_sequence 
+                SET daily_value = 1, last_daily_reset = ? 
+                WHERE id = 1
+            ''', (today.strftime('%Y-%m-%d'),))
+            daily_number = 1
+        else:
+            # Use current daily sequence value
+            daily_number = daily_value
+            # Increment the daily sequence
+            c.execute('UPDATE customer_sequence SET daily_value = daily_value + 1 WHERE id = 1')
+        
+        # Check if we need to reset monthly sequence
+        if today.month != last_monthly.month or today.year != last_monthly.year:
+            # Reset monthly sequence to 1 and update last_monthly_reset
+            c.execute('''
+                UPDATE customer_sequence 
+                SET monthly_value = 1, last_monthly_reset = ? 
+                WHERE id = 1
+            ''', (today.strftime('%Y-%m-%d'),))
+            monthly_number = 1
+        else:
+            # Use current monthly sequence value
+            monthly_number = monthly_value
+            # Increment the monthly sequence
+            c.execute('UPDATE customer_sequence SET monthly_value = monthly_value + 1 WHERE id = 1')
+        
+        conn.commit()
+        return daily_number, monthly_number
+        
+    finally:
+        conn.close()
+
 @app.route('/get_orders/1')
 def get_orders():
    conn = sqlite3.connect('pos.db')
@@ -106,19 +170,18 @@ def place_order():
         conn = sqlite3.connect('pos.db')
         c = conn.cursor()
         
-        # Get next customer number
-        c.execute('SELECT next_value FROM customer_sequence WHERE id = 1')
-        customer_number = c.fetchone()[0]
+        # Get both customer numbers with potential resets
+        daily_number, monthly_number = get_and_update_customer_numbers()
         
-        # Increment the sequence
-        c.execute('UPDATE customer_sequence SET next_value = next_value + 1 WHERE id = 1')
-        
-        # Insert the order
+        # Insert the order with both numbers
         c.execute('''
-            INSERT INTO orders (customer_number, items, total_amount, order_date)
-            VALUES (?, ?, ?, datetime('now', 'localtime'))
+            INSERT INTO orders (
+                daily_customer_number, monthly_customer_number,
+                items, total_amount, order_date
+            ) VALUES (?, ?, ?, ?, datetime('now', 'localtime'))
         ''', (
-            customer_number,
+            daily_number,
+            monthly_number,
             json.dumps(order_data['items']),
             order_data['totalAmount']
         ))
@@ -128,7 +191,8 @@ def place_order():
         
         return jsonify({
             'success': True,
-            'customer_number': customer_number
+            'daily_customer_number': daily_number,
+            'monthly_customer_number': monthly_number
         })
         
     except Exception as e:
@@ -140,7 +204,8 @@ def get_orders_history():
     c = conn.cursor()
     
     c.execute('''
-        SELECT customer_number, items, total_amount, order_date
+        SELECT daily_customer_number, monthly_customer_number, 
+               items, total_amount, order_date
         FROM orders
         ORDER BY order_date DESC
     ''')
@@ -148,10 +213,11 @@ def get_orders_history():
     orders = []
     for row in c.fetchall():
         orders.append({
-            'customerNumber': row[0],
-            'items': json.loads(row[1]),
-            'totalAmount': row[2],
-            'date': row[3]
+            'dailyCustomerNumber': row[0],
+            'monthlyCustomerNumber': row[1],
+            'items': json.loads(row[2]),
+            'totalAmount': row[3],
+            'date': row[4]
         })
     
     conn.close()

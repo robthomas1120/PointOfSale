@@ -21,6 +21,7 @@ body {
     max-width: 1200px;
     margin: 20px auto;
     padding: 20px;
+    box-sizing: border-box;
 }
 
 .header {
@@ -30,6 +31,12 @@ body {
     margin-bottom: 30px;
     padding-bottom: 20px;
     border-bottom: 2px solid var(--border-color);
+}
+
+.header-buttons {
+    display: flex;
+    gap: 12px;
+    align-items: center;
 }
 
 .back-button {
@@ -43,6 +50,111 @@ body {
 
 .back-button:hover {
     background-color: var(--accent-hover);
+    transform: translateY(-2px);
+}
+
+/* Update these specific parts in your CSS */
+.filter-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* Reduced from 20px */
+    margin-bottom: 20px;
+}
+
+.filter-section {
+    background: var(--bg-secondary);
+    padding: 25px;
+    border-radius: 16px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box; /* Add this to include padding in width calculation */
+}
+
+.filter-section,
+.orders-container {
+    max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.section-content {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    align-items: flex-end;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.date-filter-group {
+    display: flex;
+    gap: 20px;
+    flex: 1;
+}
+
+.filter-group label {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.range-inputs {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.range-separator {
+    color: var(--text-secondary);
+    margin: 0 8px;
+}
+
+.filter-input {
+    background-color: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    min-width: 150px;
+}
+
+.filter-input:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+}
+
+.filter-button {
+    background-color: var(--accent-color);
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.filter-button:hover {
+    background-color: var(--accent-hover);
+    transform: translateY(-2px);
+}
+
+
+.filter-button.reset {
+    background-color: #dc3545;
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.filter-button.reset:hover {
+    background-color: #c82333;
     transform: translateY(-2px);
 }
 
@@ -92,4 +204,57 @@ td:first-child, th:first-child {
 td:last-child, th:last-child {
     border-top-right-radius: 8px;
     border-bottom-right-radius: 8px;
+}
+
+.order-details {
+    white-space: pre-line;
+    line-height: 1.6;
+}
+
+td.order-details {
+    padding: 16px 24px;
+}
+
+table th:nth-child(4),
+table td:nth-child(4) {
+    width: 40%;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+    .section-content {
+        flex-direction: column;
+    }
+    
+    .date-filter-group {
+        flex-direction: column;
+    }
+    
+    .filter-button {
+        width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .header-buttons {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .filter-section {
+        padding: 15px;
+    }
+
+    .filter-group {
+        width: 100%;
+    }
+
+    .range-inputs {
+        flex-direction: column;
+    }
+
+    .range-separator {
+        text-align: center;
+        margin: 4px 0;
+    }
 }
