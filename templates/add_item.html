@@ -1,13 +1,17 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Item</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='add_item.css') }}">
 </head>
 <body>
     <div class="container">
         <div class="item-form">
-            <h2>Add New Item</h2>
+            <div class="header">
+                <h2>Add New Item</h2>
+            </div>
             <form id="addItemForm">
                 <div class="form-group">
                     <input type="text" id="itemName" placeholder="Item Name" required>
