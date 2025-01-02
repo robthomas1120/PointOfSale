@@ -1,27 +1,59 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Items List</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POS Menu</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h2>Items List</h2>
-            <a href="{{ url_for('add_item_page') }}" class="add-button">Add New Item</a>
-        </div>
-        <table id="itemsTable">
-            <thead>
-                <tr>
-                    <th>Image</th>
-                    <th>Name</th>
-                    <th>Price</th>
-                </tr>
-            </thead>
-            <tbody id="itemsList">
-            </tbody>
-        </table>
+        <!-- Menu Section -->
+        <section class="menu-section">
+            <div class="header">
+                <h2>Menu Items</h2>
+                <a href="{{ url_for('add_item_page') }}" class="add-button">Add Item</a>
+            </div>
+            
+            <!-- Search Bar -->
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="Search items..." class="search-bar">
+            </div>
+
+            <!-- Menu Items Table -->
+            <table id="itemsTable">
+                </thead>
+                <tbody id="itemsList">
+                </tbody>
+            </table>
+        </section>
+        
+        <!-- Cart Section -->
+        <section class="cart-section">
+            <div class="header">
+                <h2>Your Order</h2>
+            </div>
+            
+            <!-- Cart Items Table -->
+            <table id="cartTable">
+                <thead>
+                    <tr>
+                        <th scope="col">Item</th>
+                        <th scope="col">Quantity</th>
+                        <th scope="col">Total</th>
+                    </tr>
+                </thead>
+                <tbody id="cartItems">
+                </tbody>
+            </table>
+            
+            <!-- Total Section -->
+            <div class="total-section">
+                <h3>Total Order: ₱<span id="cartTotal">0.00</span></h3>
+            </div>
+        </section>
     </div>
+
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
