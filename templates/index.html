@@ -12,9 +12,12 @@
         <section class="menu-section">
             <div class="header">
                 <h2>Menu Items</h2>
-                <a href="{{ url_for('add_item_page') }}" class="add-button admin-only">Add Item</a>
-                <button id="setPriceBtn" class="set-price-button admin-only">Set Price</button>
-                <a href="{{ url_for('order_history') }}" class="history-button">Order History</a>
+                <div class="button-group">
+                    <a href="{{ url_for('add_item_page') }}" class="add-button admin-only">Add Item</a>
+                    <button id="setPriceBtn" class="set-price-button admin-only">Set Price</button>
+                    <a href="{{ url_for('kitchen_display') }}" class="kitchen-button" id="kitchenBtn">Kitchen Display</a>
+                    <a href="{{ url_for('order_history') }}" class="history-button">Order History</a>
+                </div>
             </div>
             
             <!-- Search Bar -->

@@ -13,6 +13,14 @@ if not os.path.exists(app.config['UPLOAD_FOLDER']):
 def init_db():
    conn = sqlite3.connect('pos.db')
    c = conn.cursor()
+   
+   # Check if status column exists in orders table
+   c.execute("PRAGMA table_info(orders)")
+   columns = [column[1] for column in c.fetchall()]
+    
+   if 'status' not in columns:
+       c.execute('ALTER TABLE orders ADD COLUMN status TEXT DEFAULT "pending"')
+
    # Create items table
    c.execute('''
        CREATE TABLE IF NOT EXISTS items (
@@ -35,6 +43,18 @@ def init_db():
            order_date DATETIME DEFAULT CURRENT_TIMESTAMP
        )
    ''')
+
+   c.execute('''
+        CREATE TABLE IF NOT EXISTS orders (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            daily_customer_number INTEGER,
+            monthly_customer_number INTEGER,
+            items TEXT,
+            total_amount REAL,
+            order_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+            status TEXT DEFAULT 'pending'
+        )
+    ''')
    
    # Modified customer_sequence table to track both daily and monthly sequences
    c.execute('''
@@ -95,6 +115,72 @@ def update_price():
 @app.route('/order_history')
 def order_history():
     return render_template('orderHistory.html')
+
+@app.route('/kitchen')
+def kitchen_display():
+    return render_template('kitchen.html')
+
+@app.route('/get_kitchen_orders')
+def get_kitchen_orders():
+    try:
+        conn = sqlite3.connect('pos.db')
+        c = conn.cursor()
+        
+        # Only get orders with status 'pending' or NULL status
+        c.execute('''
+            SELECT id, daily_customer_number, monthly_customer_number, 
+                   items, total_amount, order_date
+            FROM orders
+            WHERE (status IS NULL OR status = 'pending')
+                AND order_date >= datetime('now', '-1 day')
+            ORDER BY order_date DESC
+        ''')
+        
+        orders = []
+        for row in c.fetchall():
+            try:
+                orders.append({
+                    'id': row[0],
+                    'dailyCustomerNumber': row[1],
+                    'monthlyCustomerNumber': row[2],
+                    'items': row[3],
+                    'totalAmount': row[4],
+                    'date': row[5],
+                    'status': 'pending'
+                })
+            except Exception as row_error:
+                print(f"Error processing row: {row_error}")
+                continue
+        
+        conn.close()
+        return jsonify(orders)
+    except Exception as e:
+        print(f"Database error: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/complete_order', methods=['POST'])
+def complete_order():
+    try:
+        data = request.json
+        order_id = data['orderId']
+        
+        conn = sqlite3.connect('pos.db')
+        c = conn.cursor()
+        
+        # Update the order status
+        c.execute('''
+            UPDATE orders 
+            SET status = 'completed' 
+            WHERE id = ?
+        ''', (order_id,))
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({'success': True})
+    except Exception as e:
+        print(f"Error completing order: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/add_order', methods=['POST'])
 def add_order():
@@ -196,12 +282,12 @@ def place_order():
         # Get both customer numbers with potential resets
         daily_number, monthly_number = get_and_update_customer_numbers()
         
-        # Insert the order with both numbers
+        # Insert the order with status
         c.execute('''
             INSERT INTO orders (
                 daily_customer_number, monthly_customer_number,
-                items, total_amount, order_date
-            ) VALUES (?, ?, ?, ?, datetime('now', 'localtime'))
+                items, total_amount, order_date, status
+            ) VALUES (?, ?, ?, ?, datetime('now', 'localtime'), 'pending')
         ''', (
             daily_number,
             monthly_number,
@@ -219,6 +305,7 @@ def place_order():
         })
         
     except Exception as e:
+        print(f"Error placing order: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/get_orders_history')

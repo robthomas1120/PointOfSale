@@ -23,12 +23,12 @@ document.getElementById('orderNowBtn').addEventListener('click', async () => {
 
         if (response.ok) {
             const result = await response.json();
-            // Clear the cart
             cart = [];
             updateCartDisplay();
             alert(`Order placed successfully!\nDaily Customer #${result.daily_customer_number}\nMonthly Customer #${result.monthly_customer_number}`);
-            // Redirect to order history page
-            window.location.href = '/order_history';
+            
+            // Open kitchen display in new window if not already open
+            window.open('/kitchen', 'kitchen_display', 'width=1200,height=800');
         } else {
             alert('Error placing order. Please try again.');
         }
@@ -172,6 +172,11 @@ document.getElementById('setPriceBtn').addEventListener('click', function() {
         this.style.backgroundColor = '';
     }
     displayFilteredItems(allItems);
+});
+
+document.getElementById('kitchenBtn').addEventListener('click', function(e) {
+    e.preventDefault();
+    window.open('/kitchen', 'kitchen_display', 'width=1200,height=800');
 });
 
 // Initialize the menu

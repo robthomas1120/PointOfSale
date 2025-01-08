@@ -284,3 +284,25 @@ button:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(255, 152, 0, 0.2);
 }
+
+.button-group {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.kitchen-button {
+    background-color: var(--accent-color);
+    color: white;
+    padding: 12px 24px;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.kitchen-button:hover {
+    background-color: var(--accent-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
+}
