@@ -80,6 +80,7 @@ select:focus {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 20px;
+    align-items: start; /* This prevents cards from stretching */
 }
 
 .order-card {
@@ -88,6 +89,9 @@ select:focus {
     padding: 25px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
+    height: fit-content; /* This makes the card only as tall as its content */
+    display: flex;
+    flex-direction: column;
 }
 
 .order-card:hover {
@@ -123,6 +127,7 @@ select:focus {
 }
 
 .order-items {
+    flex-grow: 1; /* This allows the items section to grow if needed */
     margin-bottom: 15px;
 }
 
