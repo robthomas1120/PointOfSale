@@ -78,6 +78,8 @@ def init_db():
            ) VALUES (1, 1, 1, ?, ?)
        ''', (today.strftime('%Y-%m-%d'), today.strftime('%Y-%m-%d')))
    
+   reset_customer_sequence()
+   
    conn.commit()
    conn.close()
 
@@ -224,42 +226,68 @@ def get_and_update_customer_numbers():
         
         # Convert stored dates to date objects
         last_daily = datetime.strptime(last_daily_reset, '%Y-%m-%d').date()
-        last_monthly = datetime.strptime(last_monthly_reset, '%Y-%m-%d').date()
         today = datetime.now().date()
         
-        # Check if we need to reset daily sequence
-        if today > last_daily:
+        # Check if we need to reset daily sequence (comparing actual dates)
+        if today != last_daily:
             # Reset daily sequence to 1 and update last_daily_reset
+            daily_number = 1
             c.execute('''
                 UPDATE customer_sequence 
-                SET daily_value = 1, last_daily_reset = ? 
+                SET daily_value = ?, last_daily_reset = ? 
                 WHERE id = 1
-            ''', (today.strftime('%Y-%m-%d'),))
-            daily_number = 1
+            ''', (daily_number, today.strftime('%Y-%m-%d')))
         else:
-            # Use current daily sequence value
+            # Use current daily value as the customer number, then increment for next time
             daily_number = daily_value
-            # Increment the daily sequence
-            c.execute('UPDATE customer_sequence SET daily_value = daily_value + 1 WHERE id = 1')
+            c.execute('UPDATE customer_sequence SET daily_value = ? WHERE id = 1', (daily_value + 1,))
         
         # Check if we need to reset monthly sequence
+        last_monthly = datetime.strptime(last_monthly_reset, '%Y-%m-%d').date()
         if today.month != last_monthly.month or today.year != last_monthly.year:
             # Reset monthly sequence to 1 and update last_monthly_reset
+            monthly_number = 1
             c.execute('''
                 UPDATE customer_sequence 
-                SET monthly_value = 1, last_monthly_reset = ? 
+                SET monthly_value = ?, last_monthly_reset = ? 
                 WHERE id = 1
-            ''', (today.strftime('%Y-%m-%d'),))
-            monthly_number = 1
+            ''', (monthly_number, today.strftime('%Y-%m-%d')))
         else:
-            # Use current monthly sequence value
+            # Use current monthly value, then increment for next time
             monthly_number = monthly_value
-            # Increment the monthly sequence
-            c.execute('UPDATE customer_sequence SET monthly_value = monthly_value + 1 WHERE id = 1')
+            c.execute('UPDATE customer_sequence SET monthly_value = ? WHERE id = 1', (monthly_value + 1,))
         
         conn.commit()
         return daily_number, monthly_number
         
+    finally:
+        conn.close()
+
+def reset_customer_sequence():
+    conn = sqlite3.connect('pos.db')
+    c = conn.cursor()
+    try:
+        today = datetime.now().date()
+        # Set both values to 1 and let the get_and_update function handle the increment
+        c.execute('''
+            UPDATE customer_sequence 
+            SET daily_value = 1,
+                monthly_value = 1,
+                last_daily_reset = ?,
+                last_monthly_reset = ?
+            WHERE id = 1
+        ''', (today.strftime('%Y-%m-%d'), today.strftime('%Y-%m-%d')))
+        
+        # If no rows were updated, insert initial values
+        if c.rowcount == 0:
+            c.execute('''
+                INSERT INTO customer_sequence (
+                    id, daily_value, monthly_value, 
+                    last_daily_reset, last_monthly_reset
+                ) VALUES (1, 1, 1, ?, ?)
+            ''', (today.strftime('%Y-%m-%d'), today.strftime('%Y-%m-%d')))
+        
+        conn.commit()
     finally:
         conn.close()
 
