@@ -130,14 +130,14 @@ class ExportDialog {
     }
 
     exportToExcel(data) {
+        console.log(data);
+
         // Transform the data to make it more presentable in Excel
         const formattedData = data.map(order => ({
             'Daily #': order.dailyCustomerNumber,
             'Date': order.date,
             'Time': order.time,
-            'Order Details': order.items.map(item => 
-                `${item.name} x${item.quantity} = P${(item.price * item.quantity).toFixed(2)}`
-            ).join('\r\n'),  // Join with Excel line breaks
+            'Order Details': order.orderDetails,  // Join with Excel line breaks
             'Total Amount': order.totalAmount,
             'Monthly #': order.monthlyCustomerNumber
         }));
