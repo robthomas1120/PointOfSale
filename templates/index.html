@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>POS Menu</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.jpg') }}">
 </head>
 <body>
     <div class="container">
@@ -13,10 +14,10 @@
             <div class="header">
                 <h2>Menu Items</h2>
                 <div class="button-group">
-                    <a href="{{ url_for('add_item_page') }}" class="add-button admin-only">Add Item</a>
-                    <button id="setPriceBtn" class="set-price-button admin-only">Set Price</button>
-                    <a href="{{ url_for('kitchen_display') }}" class="kitchen-button" id="kitchenBtn">Kitchen Display</a>
-                    <a href="{{ url_for('order_history') }}" class="history-button">Order History</a>
+                    <button onclick="window.location.href='{{ url_for('add_item_page') }}'" class="add-button admin-only header-btn">Add Item</button>
+                    <button id="setPriceBtn" class="set-price-button admin-only header-btn">Set Price</button>
+                    <button class="kitchen-button header-btn" id="kitchenBtn">Kitchen Display</button>
+                    <button onclick="window.location.href='{{ url_for('order_history') }}'" class="history-button header-btn">Order History</button>            
                 </div>
             </div>
             
@@ -54,7 +55,7 @@
             
             <!-- Total Section -->
             <div class="total-section">
-                <h3>Total Order: ₱<span id="cartTotal">0.00</span></h3>
+                <h3>Total Price: ₱<span id="cartTotal">0.00</span></h3>
                 <button id="orderNowBtn" class="order-button">Order Now</button>
             </div>
         </section>

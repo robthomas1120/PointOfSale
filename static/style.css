@@ -63,6 +63,8 @@ body {
     border-radius: 8px;
     font-weight: 500;
     transition: all 0.3s ease;
+    text-align: center;
+    font-size: large;
 }
 
 .add-button:hover, .history-button:hover {
@@ -270,7 +272,7 @@ button:hover {
     border-radius: 8px;
     font-weight: 500;
     transition: all 0.3s ease;
-    margin-left: 10px;
+    font-size: large;
 }
 
 .set-price-button:hover {
@@ -299,6 +301,14 @@ button:hover {
     border-radius: 8px;
     font-weight: 500;
     transition: all 0.3s ease;
+    text-align: center;
+}
+
+.header-btn    {
+    text-align: center;
+    font-size: 1.1rem;
+    max-width: 6rem;
+    padding: 0.5rem 1rem;   
 }
 
 .kitchen-button:hover {
