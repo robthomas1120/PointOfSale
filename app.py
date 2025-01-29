@@ -220,12 +220,12 @@ def get_and_update_customer_numbers():
             ''', (daily_number, today.strftime('%Y-%m-%d')))
         else:
             # Use current daily value as the customer number, then increment for next time
-            daily_number = daily_value
-            c.execute('UPDATE customer_sequence SET daily_value = ? WHERE id = 1', (daily_value + 1,))
+            daily_number = daily_value + 1
+            c.execute('UPDATE customer_sequence SET daily_value = ? WHERE id = 1', (daily_number,))
         
         # Check if we need to reset monthly sequence
         last_monthly = datetime.strptime(last_monthly_reset, '%Y-%m-%d').date()
-        if today.month != last_monthly.month or today.year != last_monthly.year:
+        if today.month != last_monthly.month:
             # Reset monthly sequence to 1 and update last_monthly_reset
             monthly_number = 1
             c.execute('''
@@ -235,8 +235,8 @@ def get_and_update_customer_numbers():
             ''', (monthly_number, today.strftime('%Y-%m-%d')))
         else:
             # Use current monthly value, then increment for next time
-            monthly_number = monthly_value
-            c.execute('UPDATE customer_sequence SET monthly_value = ? WHERE id = 1', (monthly_value + 1,))
+            monthly_number = monthly_value + 1
+            c.execute('UPDATE customer_sequence SET monthly_value = ? WHERE id = 1', (monthly_number,))
         
         conn.commit()
         return daily_number, monthly_number
