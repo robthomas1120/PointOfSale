@@ -316,3 +316,47 @@ button:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
 }
+
+.item-discount-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.discount-checkbox {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: var(--accent-color);
+}
+
+.discount-checkbox:checked + label {
+    color: var(--accent-color);
+}
+
+.total-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.price-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.price-label {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+}
+
+.price-value {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.discounted-price {
+    color: var(--accent-color);
+}

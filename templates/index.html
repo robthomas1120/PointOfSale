@@ -28,7 +28,6 @@
 
             <!-- Menu Items Table -->
             <table id="itemsTable">
-                </thead>
                 <tbody id="itemsList">
                 </tbody>
             </table>
@@ -53,9 +52,16 @@
                 </tbody>
             </table>
             
-            <!-- Total Section -->
+            <!-- Updated Total Section -->
             <div class="total-section">
-                <h3>Total Price: ₱<span id="cartTotal">0.00</span></h3>
+                <div class="price-row">
+                    <span class="price-label">Original Price:</span>
+                    <span class="price-value">₱<span id="cartTotal">0.00</span></span>
+                </div>
+                <div class="price-row">
+                    <span class="price-label">Discounted Price:</span>
+                    <span class="price-value discounted-price">₱<span id="discountedTotal">0.00</span></span>
+                </div>
                 <button id="orderNowBtn" class="order-button">Order Now</button>
             </div>
         </section>

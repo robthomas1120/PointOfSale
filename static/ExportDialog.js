@@ -115,10 +115,10 @@ class ExportDialog {
             date: this.formatDate(order.date),
             time: this.formatTime(order.date),
             orderDetails: order.items.map(item => 
-                // Format each item line
-                `${item.name} x${item.quantity} = P${(item.price * item.quantity).toFixed(2)}`
-            ).join('\n'),  // Changed to \n for direct line breaks
-            totalAmount: `P${order.totalAmount.toFixed(2)}`
+                `${item.name} x${item.quantity} = ₱${(item.price * item.quantity).toFixed(2)}`
+            ).join('\n'),
+            totalAmount: order.totalAmount,
+            discountedTotal: order.discountedTotal
         }));
     
         if (format === 'excel') {
@@ -128,6 +128,7 @@ class ExportDialog {
         }
         this.hide();
     }
+    
 
     exportToExcel(data) {
         console.log(data);
@@ -137,8 +138,9 @@ class ExportDialog {
             'Daily #': order.dailyCustomerNumber,
             'Date': order.date,
             'Time': order.time,
-            'Order Details': order.orderDetails,  // Join with Excel line breaks
-            'Total Amount': order.totalAmount,
+            'Order Details': order.orderDetails.replace(/\s+/g, ' ').trim(),  // Fix spacing
+            'Original Total': `₱${parseFloat(order.totalAmount).toFixed(2)}`,
+            'Discounted Total': `₱${parseFloat(order.discountedTotal).toFixed(2)}`,
             'Monthly #': order.monthlyCustomerNumber
         }));
     
@@ -150,7 +152,8 @@ class ExportDialog {
             { wch: 12 },  // Date
             { wch: 12 },  // Time
             { wch: 60 },  // Order Details
-            { wch: 15 },  // Total Amount
+            { wch: 15 },  // Original Total
+            { wch: 15 },  // Discounted Total
             { wch: 10 }   // Monthly #
         ];
         ws['!cols'] = cols;
@@ -202,74 +205,77 @@ class ExportDialog {
         ws['!rows'] = rows;
     
         const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Orders");
-        
-        // Generate filename with current date
-        const date = new Date().toISOString().split('T')[0];
-        const filename = `orders_export_${date}.xlsx`;
-        
-        XLSX.writeFile(wb, filename);
+    XLSX.utils.book_append_sheet(wb, ws, "Orders");
+    
+    const date = new Date().toISOString().split('T')[0];
+    const filename = `orders_export_${date}.xlsx`;
+    
+    XLSX.writeFile(wb, filename);
     }
 
+    
     exportToPDF(data) {
         // Create new jsPDF instance in landscape mode
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF({
-            orientation: 'landscape'
+          orientation: "landscape",
         });
-        
         // Add title
         doc.setFontSize(16);
         doc.text("Orders Export", 14, 15);
         doc.setFontSize(10);
-        
         // Add filter information
-        const startDate = document.getElementById('startDate').value || 'All dates';
-        const endDate = document.getElementById('endDate').value || 'All dates';
+        const startDate = document.getElementById("startDate").value || "All dates";
+        const endDate = document.getElementById("endDate").value || "All dates";
         doc.text(`Date Range: ${startDate} to ${endDate}`, 14, 25);
-        
         // Transform the data to put each item on a new line
-        const transformedData = data.map(order => {
-            return [
-                order.dailyCustomerNumber,
-                order.date,
-                order.time,
-                order.orderDetails, // Already formatted with line breaks
-                order.totalAmount,
-                order.monthlyCustomerNumber
-            ];
+        const transformedData = data.map((order) => {
+          return [
+            order.dailyCustomerNumber,
+            order.date,
+            order.time,
+            order.orderDetails, // Already formatted with line breaks
+            order.totalAmount,
+            order.discountedTotal, // Added discounted total
+            order.monthlyCustomerNumber,
+          ];
         });
-        
         // Define headers
-        const headers = ['Daily #', 'Date', 'Time', 'Order Details', 'Total Amount', 'Monthly #'];
-        
+        const headers = [
+          "Daily #",
+          "Date",
+          "Time",
+          "Order Details",
+          "Total Amount",
+          "Discounted Total", // Added header for discounted total
+          "Monthly #",
+        ];
         // Configure and create table
         doc.autoTable({
-            head: [headers],
-            body: transformedData,
-            startY: 30,
-            styles: { 
-                overflow: 'linebreak',
-                cellPadding: 2,
-                fontSize: 8,
-                lineColor: 40,
-                lineWidth: 0.1
-            },
-            columnStyles: {
-                0: { cellWidth: 20 },  // Daily #
-                1: { cellWidth: 30 },  // Date
-                2: { cellWidth: 30 },  // Time
-                3: { cellWidth: 'auto' },  // Order Details
-                4: { cellWidth: 30 },  // Total Amount
-                5: { cellWidth: 20 }   // Monthly #
-            },
-            theme: 'grid'
+          head: [headers],
+          body: transformedData,
+          startY: 30,
+          styles: {
+            overflow: "linebreak",
+            cellPadding: 2,
+            fontSize: 8,
+            lineColor: 40,
+            lineWidth: 0.1,
+          },
+          columnStyles: {
+            0: { cellWidth: 20 }, // Daily #
+            1: { cellWidth: 30 }, // Date
+            2: { cellWidth: 30 }, // Time
+            3: { cellWidth: "auto" }, // Order Details
+            4: { cellWidth: 30 }, // Total Amount
+            5: { cellWidth: 30 }, // Discounted Total
+            6: { cellWidth: 20 }, // Monthly #
+          },
+          theme: "grid",
         });
-        
         // Generate filename with current date
-        const date = new Date().toISOString().split('T')[0];
+        const date = new Date().toISOString().split("T")[0];
         const filename = `orders_export_${date}.pdf`;
-        
         doc.save(filename);
-    }
+      }
 }

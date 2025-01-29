@@ -80,7 +80,7 @@ function displayOrders() {
     if (filteredOrders.length === 0) {
         ordersList.innerHTML = `
             <tr>
-                <td colspan="6">No orders found</td>
+                <td colspan="7">No orders found</td>
             </tr>
         `;
         return;
@@ -95,6 +95,7 @@ function displayOrders() {
                 ${formatOrderItems(order.items)}
             </td>
             <td>₱${order.totalAmount.toFixed(2)}</td>
+            <td>₱${order.discountedTotal.toFixed(2)}</td>
             <td>${order.monthlyCustomerNumber}</td>
         </tr>
     `).join('');

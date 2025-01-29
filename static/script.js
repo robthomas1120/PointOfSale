@@ -6,9 +6,26 @@ let searchInput; // Reference to search input
 document.getElementById('orderNowBtn').addEventListener('click', async () => {
     if (cart.length === 0) return;
 
+    const originalTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const discountedTotal = cart.reduce((sum, item) => {
+        if (item.discounted) {
+            const regularItems = item.quantity - 1;
+            const discountedItem = 1;
+            return sum + (item.price * regularItems) + (item.price * discountedItem * 0.8);
+        }
+        return sum + (item.price * item.quantity);
+    }, 0);
+
     const order = {
-        items: cart,
-        totalAmount: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+        items: cart.map(item => ({
+            ...item,
+            originalPrice: item.price * item.quantity,
+            discountedPrice: item.discounted ? 
+                (item.price * (item.quantity - 1)) + (item.price * 0.8) :
+                item.price * item.quantity
+        })),
+        totalAmount: originalTotal,
+        discountedTotal: discountedTotal,
         date: new Date().toISOString()
     };
 
@@ -27,7 +44,6 @@ document.getElementById('orderNowBtn').addEventListener('click', async () => {
             updateCartDisplay();
             alert(`Order placed successfully!\nDaily Customer #${result.daily_customer_number}\nMonthly Customer #${result.monthly_customer_number}`);
             
-            // Open kitchen display in new window if not already open
             window.open('/kitchen', 'kitchen_display', 'width=1200,height=800');
         } else {
             alert('Error placing order. Please try again.');
@@ -100,7 +116,8 @@ function addToCart(name, price, imagePath) {
             name: name,
             price: price,
             imagePath: imagePath,
-            quantity: 1
+            quantity: 1,
+            discounted: false
         });
     }
     
@@ -124,20 +141,48 @@ function removeFromCart(index) {
 function updateCartDisplay() {
     const cartItems = document.getElementById('cartItems');
     const cartTotal = document.getElementById('cartTotal');
+    const discountedTotal = document.getElementById('discountedTotal');
     
     cartItems.innerHTML = cart.map((item, index) => `
-        <tr class="cart-item" onclick="removeFromCart(${index})">
-            <td>${item.name}</td>
+        <tr class="cart-item">
+            <td>
+                <div class="item-discount-group">
+                    <input type="checkbox" 
+                           id="discount-${index}" 
+                           class="discount-checkbox"
+                           ${item.discounted ? 'checked' : ''}
+                           onchange="toggleDiscount(${index})"
+                    >
+                    <label for="discount-${index}">${item.name}</label>
+                </div>
+            </td>
             <td>${item.quantity}</td>
-            <td>₱${(item.price * item.quantity).toFixed(2)}</td>
+            <td onclick="removeFromCart(${index})">₱${(item.price * item.quantity).toFixed(2)}</td>
         </tr>
     `).join('');
     
-    const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    cartTotal.textContent = total.toFixed(2);
+    // Calculate totals
+    const originalTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const discountedItems = cart.reduce((sum, item) => {
+        if (item.discounted) {
+            // Apply 20% discount to only one item of the quantity
+            const regularItems = item.quantity - 1;
+            const discountedItem = 1;
+            return sum + (item.price * regularItems) + (item.price * discountedItem * 0.8);
+        }
+        return sum + (item.price * item.quantity);
+    }, 0);
+    
+    cartTotal.textContent = originalTotal.toFixed(2);
+    discountedTotal.textContent = discountedItems.toFixed(2);
 
     const orderButton = document.getElementById('orderNowBtn');
     orderButton.disabled = cart.length === 0;
+}
+
+function toggleDiscount(index) {
+    cart[index].discounted = !cart[index].discounted;
+    updateCartDisplay();
 }
 
 function handleSearch(e) {

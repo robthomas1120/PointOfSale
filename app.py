@@ -11,77 +11,58 @@ if not os.path.exists(app.config['UPLOAD_FOLDER']):
    os.makedirs(app.config['UPLOAD_FOLDER'])
 
 def init_db():
-   conn = sqlite3.connect('pos.db')
-   c = conn.cursor()
-   
-   # Check if status column exists in orders table
-   c.execute("PRAGMA table_info(orders)")
-   columns = [column[1] for column in c.fetchall()]
+    conn = sqlite3.connect('pos.db')
+    c = conn.cursor()
     
-   if 'status' not in columns:
-       c.execute('ALTER TABLE orders ADD COLUMN status TEXT DEFAULT "pending"')
-
-   # Create items table
-   c.execute('''
-       CREATE TABLE IF NOT EXISTS items (
-           id INTEGER PRIMARY KEY AUTOINCREMENT,
-           item_name TEXT,
-           price REAL,
-           image_path TEXT,
-           created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-       )
-   ''')
-   
-   # Create orders table with both daily and monthly customer numbers
-   c.execute('''
-       CREATE TABLE IF NOT EXISTS orders (
-           id INTEGER PRIMARY KEY AUTOINCREMENT,
-           daily_customer_number INTEGER,
-           monthly_customer_number INTEGER,
-           items TEXT,
-           total_amount REAL,
-           order_date DATETIME DEFAULT CURRENT_TIMESTAMP
-       )
-   ''')
-
-   c.execute('''
+    # Create items table
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS items (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            item_name TEXT,
+            price REAL,
+            image_path TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    
+    # Create orders table with all required columns
+    c.execute('''
         CREATE TABLE IF NOT EXISTS orders (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             daily_customer_number INTEGER,
             monthly_customer_number INTEGER,
             items TEXT,
             total_amount REAL,
+            discounted_total REAL,
             order_date DATETIME DEFAULT CURRENT_TIMESTAMP,
             status TEXT DEFAULT 'pending'
         )
     ''')
    
-   # Modified customer_sequence table to track both daily and monthly sequences
-   c.execute('''
-       CREATE TABLE IF NOT EXISTS customer_sequence (
-           id INTEGER PRIMARY KEY,
-           daily_value INTEGER,
-           monthly_value INTEGER,
-           last_daily_reset DATE,
-           last_monthly_reset DATE
-       )
-   ''')
+    # Create customer_sequence table
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS customer_sequence (
+            id INTEGER PRIMARY KEY,
+            daily_value INTEGER,
+            monthly_value INTEGER,
+            last_daily_reset DATE,
+            last_monthly_reset DATE
+        )
+    ''')
    
-   # Initialize the sequence if it's empty
-   c.execute('SELECT daily_value FROM customer_sequence WHERE id = 1')
-   if not c.fetchone():
-       today = datetime.now().date()
-       c.execute('''
-           INSERT INTO customer_sequence (
-               id, daily_value, monthly_value, 
-               last_daily_reset, last_monthly_reset
-           ) VALUES (1, 1, 1, ?, ?)
-       ''', (today.strftime('%Y-%m-%d'), today.strftime('%Y-%m-%d')))
+    # Initialize the sequence if it's empty
+    c.execute('SELECT daily_value FROM customer_sequence WHERE id = 1')
+    if not c.fetchone():
+        today = datetime.now().date()
+        c.execute('''
+            INSERT INTO customer_sequence (
+                id, daily_value, monthly_value, 
+                last_daily_reset, last_monthly_reset
+            ) VALUES (1, 1, 1, ?, ?)
+        ''', (today.strftime('%Y-%m-%d'), today.strftime('%Y-%m-%d')))
    
-   reset_customer_sequence()
-   
-   conn.commit()
-   conn.close()
+    conn.commit()
+    conn.close()
 
 @app.route('/')
 def index():
@@ -307,20 +288,22 @@ def place_order():
         conn = sqlite3.connect('pos.db')
         c = conn.cursor()
         
-        # Get both customer numbers with potential resets
         daily_number, monthly_number = get_and_update_customer_numbers()
         
-        # Insert the order with status
+        # Make sure discounted_total has a default value if not provided
+        discounted_total = order_data.get('discountedTotal', order_data['totalAmount'])
+        
         c.execute('''
             INSERT INTO orders (
                 daily_customer_number, monthly_customer_number,
-                items, total_amount, order_date, status
-            ) VALUES (?, ?, ?, ?, datetime('now', 'localtime'), 'pending')
+                items, total_amount, discounted_total, order_date, status
+            ) VALUES (?, ?, ?, ?, ?, datetime('now', 'localtime'), 'pending')
         ''', (
             daily_number,
             monthly_number,
             json.dumps(order_data['items']),
-            order_data['totalAmount']
+            order_data['totalAmount'],
+            discounted_total
         ))
         
         conn.commit()
@@ -336,6 +319,7 @@ def place_order():
         print(f"Error placing order: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
+
 @app.route('/get_orders_history')
 def get_orders_history():
     conn = sqlite3.connect('pos.db')
@@ -343,7 +327,7 @@ def get_orders_history():
     
     c.execute('''
         SELECT daily_customer_number, monthly_customer_number, 
-               items, total_amount, order_date
+               items, total_amount, discounted_total, order_date
         FROM orders
         ORDER BY order_date DESC
     ''')
@@ -355,7 +339,8 @@ def get_orders_history():
             'monthlyCustomerNumber': row[1],
             'items': json.loads(row[2]),
             'totalAmount': row[3],
-            'date': row[4]
+            'discountedTotal': row[4] if row[4] is not None else row[3],  # Use total_amount if discounted is NULL
+            'date': row[5]
         })
     
     conn.close()
