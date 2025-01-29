@@ -181,7 +181,23 @@ function updateCartDisplay() {
 }
 
 function toggleDiscount(index) {
-    cart[index].discounted = !cart[index].discounted;
+    // Check if any other item is already discounted
+    const hasExistingDiscount = cart.some((item, idx) => idx !== index && item.discounted);
+    
+    // Get the checkbox that was clicked
+    const checkbox = document.getElementById(`discount-${index}`);
+    
+    // If trying to check a box when another is already checked
+    if (!cart[index].discounted && hasExistingDiscount) {
+        // Uncheck the box that was just clicked
+        checkbox.checked = false;
+        // Show warning
+        alert("Warning: Only one item can be discounted at a time. Please uncheck the existing discounted item first.");
+        return;
+    }
+    
+    // If we get here, either we're unchecking a box or we're checking the first box
+    cart[index].discounted = checkbox.checked;
     updateCartDisplay();
 }
 
