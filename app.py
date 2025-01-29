@@ -281,6 +281,10 @@ def get_orders():
    conn.close()
    return jsonify(items)
 
+@app.route('/receipt')
+def receipt():
+    return render_template('receipt.html')
+
 @app.route('/place_order', methods=['POST'])
 def place_order():
     try:

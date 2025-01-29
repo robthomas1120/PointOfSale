@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receipt</title>
+    <style>
+        @page {
+            size: 45mm auto;
+            margin: 0;
+        }
+        
+        body {
+            width: 45mm;
+            margin: 0;
+            padding: 2mm;
+            font-family: monospace;
+            line-height: 1.5;
+            font-size: 8pt;
+        }
+
+        .receipt-container {
+            width: 100%;
+        }
+
+        .logo {
+            width: 35mm;
+            margin: 0 auto;
+            display: block;
+        }
+
+        .header-text {
+            text-align: center;
+            margin: 2mm 0;
+            font-size: 9pt;
+        }
+
+        .contact-info {
+            text-align: center;
+            margin: 1mm 0;
+            font-size: 8pt;
+        }
+
+        .divider {
+            width: 100%;
+            border-bottom: 1px dashed #000;
+            margin: 2mm 0;
+        }
+
+        .date-time {
+            display: flex;
+            justify-content: space-between;
+            margin: 2mm 0;
+            font-size: 8pt;
+        }
+
+        .order-title {
+            text-align: center;
+            margin: 2mm 0;
+            font-weight: bold;
+        }
+
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 1mm 0;
+            white-space: pre;
+            font-size: 8pt;
+        }
+
+        .item-left {
+            text-align: left;
+        }
+
+        .item-right {
+            text-align: right;
+        }
+
+        .total-section {
+            margin-top: 2mm;
+        }
+
+        .total-line {
+            display: flex;
+            justify-content: space-between;
+            white-space: pre;
+            margin: 1mm 0;
+            font-size: 8pt;
+        }
+
+        @media print {
+            body {
+                width: 45mm;
+                -webkit-print-color-adjust: exact;
+            }
+            
+            /* Ensure no page breaks within items */
+            .order-item {
+                page-break-inside: avoid;
+            }
+            
+            .total-section {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="receipt-container">
+        <img src="/static/manokLogo.png" alt="Fino's Logo" class="logo">
+        
+        <div class="header-text">
+            <strong>Sushi ● Ramen ● Japanese Cuisine</strong>
+        </div>
+        
+        <div class="contact-info">
+            Phone Number: 09773806856<br>
+            Address: 1364 Laong Laan Rd
+        </div>
+        
+        <div class="divider"></div>
+        
+        <div class="date-time">
+            <span>Date: <span id="receiptDate"></span></span>
+            <span>Time: <span id="receiptTime"></span></span>
+        </div>
+        
+        <div class="divider"></div>
+        
+        <div class="order-title">Order List</div>
+        
+        <div id="orderItems">
+            <!-- Order items will be inserted here by JavaScript -->
+        </div>
+        
+        <div class="divider"></div>
+        
+        <div class="total-section">
+            <div class="total-line">
+                <span>Total:</span>
+                <span id="totalAmount"></span>
+            </div>
+            <div class="total-line">
+                <span>After Discount:</span>
+                <span id="discountedAmount"></span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -40,10 +40,43 @@ document.getElementById('orderNowBtn').addEventListener('click', async () => {
 
         if (response.ok) {
             const result = await response.json();
+            
+            // Open receipt in new window
+            const receiptWindow = window.open('/receipt', '_blank', 'width=800,height=600');
+            
+            receiptWindow.onload = () => {
+                // Set date and time
+                const now = new Date();
+                receiptWindow.document.getElementById('receiptDate').textContent = 
+                    now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                receiptWindow.document.getElementById('receiptTime').textContent = 
+                    now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+                // Populate order items
+                const orderItemsHtml = cart.map(item => `
+                    <div class="order-item">
+                        <span>${item.quantity}x ${item.name}</span>
+                        <span>₱${(item.price * item.quantity).toFixed(2)}</span>
+                    </div>
+                `).join('');
+                receiptWindow.document.getElementById('orderItems').innerHTML = orderItemsHtml;
+
+                // Set totals
+                receiptWindow.document.getElementById('totalAmount').textContent = 
+                    `₱${originalTotal.toFixed(2)}`;
+                receiptWindow.document.getElementById('discountedAmount').textContent = 
+                    `₱${discountedTotal.toFixed(2)}`;
+
+                // Print automatically
+                receiptWindow.print();
+            };
+
+            // Clear cart and update display
             cart = [];
             updateCartDisplay();
             alert(`Order placed successfully!\nDaily Customer #${result.daily_customer_number}\nMonthly Customer #${result.monthly_customer_number}`);
             
+            // Open kitchen display
             window.open('/kitchen', 'kitchen_display', 'width=1200,height=800');
         } else {
             alert('Error placing order. Please try again.');
