@@ -6,19 +6,19 @@ async function loadOrders() {
     try {
         const response = await fetch('/get_orders_history');
         if (!response.ok) {
-            throw new Error('Failed to fetch orders');
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
-        const orders = await response.json();
-        orderHistory = orders;
-        filteredOrders = [...orders];
-        displayOrders();
+        const data = await response.json();
+        if (Array.isArray(data)) {
+            originalOrders = data;
+            displayOrders(originalOrders);
+        } else {
+            console.error('Invalid response data:', data);
+            alert('Failed to load orders. Please try again.');
+        }
     } catch (error) {
         console.error('Error loading orders:', error);
-        document.getElementById('ordersList').innerHTML = `
-            <tr>
-                <td colspan="5">Error loading orders. Please try again later.</td>
-            </tr>
-        `;
+        alert('Failed to load orders. Please try again.');
     }
 }
 
@@ -74,31 +74,46 @@ function applySort() {
     displayOrders();
 }
 
-function displayOrders() {
+function handleRowClick(order) {
+    if (confirm('Do you want to print this order?')) {
+        const receiptUrl = `/receipt?dailyCustomerNumber=${order.dailyCustomerNumber}&date=${order.date}&items=${encodeURIComponent(JSON.stringify(order.items))}&totalAmount=${order.totalAmount}&discountedTotal=${order.discountedTotal}&monthlyCustomerNumber=${order.monthlyCustomerNumber}`;
+        const receiptWindow = window.open(receiptUrl, '_blank');
+
+        receiptWindow.onload = function() {
+            setTimeout(() => {
+                receiptWindow.print();
+                receiptWindow.close();
+            }, 500);
+        };
+    }
+}
+
+function displayOrders(orders) {
     const ordersList = document.getElementById('ordersList');
-    
-    if (filteredOrders.length === 0) {
-        ordersList.innerHTML = `
-            <tr>
-                <td colspan="7">No orders found</td>
-            </tr>
-        `;
+    ordersList.innerHTML = '';
+
+    if (!Array.isArray(orders)) {
+        console.error('Invalid orders data:', orders);
         return;
     }
-    
-    ordersList.innerHTML = filteredOrders.map(order => `
-        <tr>
+
+    orders.forEach(order => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
             <td>${order.dailyCustomerNumber}</td>
-            <td>${formatDate(order.date)}</td>
-            <td>${formatTime(order.date)}</td>
-            <td class="order-details">
-                ${formatOrderItems(order.items)}
-            </td>
+            <td>${new Date(order.date).toLocaleDateString()}</td>
+            <td>${new Date(order.date).toLocaleTimeString()}</td>
+            <td class="order-details">${order.items.map(item => `${item.quantity}x ${item.name}`).join('\n')}</td>
             <td>₱${order.totalAmount.toFixed(2)}</td>
             <td>₱${order.discountedTotal.toFixed(2)}</td>
             <td>${order.monthlyCustomerNumber}</td>
-        </tr>
-    `).join('');
+        `;
+        
+        // Attach the click event listener to the row
+        row.addEventListener('click', () => handleRowClick(order));
+        
+        ordersList.appendChild(row);
+    });
 }
 
 

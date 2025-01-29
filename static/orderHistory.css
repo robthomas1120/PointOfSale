@@ -194,6 +194,8 @@ tr:not(thead tr) {
 
 tr:not(thead tr):hover {
     transform: translateY(-2px);
+    background-color: #4CAF5010; /* Very subtle green on hover */
+    cursor: pointer;
 }
 
 td:first-child, th:first-child {
@@ -395,3 +397,4 @@ table td:nth-child(4) {
     background-color: var(--border-color);
     transform: translateY(-2px);
 }
+

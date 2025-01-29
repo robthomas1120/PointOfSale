@@ -16,64 +16,54 @@ document.getElementById('orderNowBtn').addEventListener('click', async () => {
         return sum + (item.price * item.quantity);
     }, 0);
 
-    const order = {
-        items: cart.map(item => ({
-            ...item,
-            originalPrice: item.price * item.quantity,
-            discountedPrice: item.discounted ? 
-                (item.price * (item.quantity - 1)) + (item.price * 0.8) :
-                item.price * item.quantity
-        })),
-        totalAmount: originalTotal,
-        discountedTotal: discountedTotal,
-        date: new Date().toISOString()
-    };
-
     try {
         const response = await fetch('/place_order', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(order)
+            body: JSON.stringify({
+                items: cart,
+                totalAmount: originalTotal,
+                discountedTotal: discountedTotal,
+                date: new Date().toISOString()
+            })
         });
 
         if (response.ok) {
             const result = await response.json();
             
-            // Open receipt in new window
-            const receiptWindow = window.open('/receipt', '_blank', 'width=800,height=600');
+            // Open receipt window
+            const receiptWindow = window.open('/receipt', '_blank');
             
-            receiptWindow.onload = () => {
-                // Set date and time
-                const now = new Date();
-                receiptWindow.document.getElementById('receiptDate').textContent = 
-                    now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-                receiptWindow.document.getElementById('receiptTime').textContent = 
-                    now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-
-                // Populate order items
-                const orderItemsHtml = cart.map(item => `
-                    <div class="order-item">
-                        <span>${item.quantity}x ${item.name}</span>
-                        <span>₱${(item.price * item.quantity).toFixed(2)}</span>
-                    </div>
-                `).join('');
-                receiptWindow.document.getElementById('orderItems').innerHTML = orderItemsHtml;
-
-                // Set totals
-                receiptWindow.document.getElementById('totalAmount').textContent = 
-                    `₱${originalTotal.toFixed(2)}`;
-                receiptWindow.document.getElementById('discountedAmount').textContent = 
-                    `₱${discountedTotal.toFixed(2)}`;
-
-                // Print automatically
-                receiptWindow.print();
+            // When receipt window loads, send the data
+            receiptWindow.onload = function() {
+                if (cart.length > 0) {
+                    console.log('Sending cart data:', {
+                        cart: cart,
+                        originalTotal: originalTotal,
+                        discountedTotal: discountedTotal
+                    });
+                    
+                    receiptWindow.postMessage({
+                        cart: cart,
+                        originalTotal: originalTotal,
+                        discountedTotal: discountedTotal
+                    }, '*');
+                    
+                    // Clear cart and update display after sending data
+                    cart = [];
+                    updateCartDisplay();
+                } else {
+                    console.log('Cart is empty, not sending data');
+                }
+                
+                // Wait a moment before printing
+                setTimeout(() => {
+                    receiptWindow.print();
+                }, 1000);
             };
 
-            // Clear cart and update display
-            cart = [];
-            updateCartDisplay();
             alert(`Order placed successfully!\nDaily Customer #${result.daily_customer_number}\nMonthly Customer #${result.monthly_customer_number}`);
             
             // Open kitchen display
@@ -145,13 +135,15 @@ function addToCart(name, price, imagePath) {
     if (existingItem) {
         existingItem.quantity += 1;
     } else {
-        cart.push({
+        const newItem = {
             name: name,
             price: price,
             imagePath: imagePath,
             quantity: 1,
             discounted: false
-        });
+        };
+        cart.push(newItem);
+        console.log('Added item to cart:', newItem); // Debug log
     }
     
     updateCartDisplay();
@@ -168,6 +160,7 @@ function removeFromCart(index) {
         cart.splice(index, 1);
     }
     
+    console.log('Updated cart after removal:', cart); // Debug log
     updateCartDisplay();
 }
 
@@ -176,6 +169,9 @@ function updateCartDisplay() {
     const cartTotal = document.getElementById('cartTotal');
     const discountedTotal = document.getElementById('discountedTotal');
     
+    console.log('Updating cart display with data:', cart); // Debug log
+
+    // Display cart items
     cartItems.innerHTML = cart.map((item, index) => `
         <tr class="cart-item">
             <td>
@@ -186,9 +182,9 @@ function updateCartDisplay() {
                            ${item.discounted ? 'checked' : ''}
                            onchange="toggleDiscount(${index})"
                     >
-                    <label for="discount-${index}">${item.name}</label>
                 </div>
             </td>
+            <td>${item.name}</td>
             <td>${item.quantity}</td>
             <td onclick="removeFromCart(${index})">₱${(item.price * item.quantity).toFixed(2)}</td>
         </tr>
@@ -198,7 +194,6 @@ function updateCartDisplay() {
     const originalTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     const discountedItems = cart.reduce((sum, item) => {
         if (item.discounted) {
-            // Apply 20% discount to only one item of the quantity
             const regularItems = item.quantity - 1;
             const discountedItem = 1;
             return sum + (item.price * regularItems) + (item.price * discountedItem * 0.8);
@@ -209,6 +204,7 @@ function updateCartDisplay() {
     cartTotal.textContent = originalTotal.toFixed(2);
     discountedTotal.textContent = discountedItems.toFixed(2);
 
+    // Enable/disable order button
     const orderButton = document.getElementById('orderNowBtn');
     orderButton.disabled = cart.length === 0;
 }
@@ -231,6 +227,7 @@ function toggleDiscount(index) {
     
     // If we get here, either we're unchecking a box or we're checking the first box
     cart[index].discounted = checkbox.checked;
+    console.log('Updated cart after toggling discount:', cart); // Debug log
     updateCartDisplay();
 }
 

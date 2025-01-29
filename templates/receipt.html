@@ -146,5 +146,66 @@
             </div>
         </div>
     </div>
+    <script>
+        // Function to format the order line with proper spacing
+        function formatOrderLine(quantity, name, price) {
+            const orderText = `${quantity}x ${name}`;
+            const priceText = `${price.toFixed(2)}`;
+            const totalWidth = 35; // Adjust this number based on receipt width
+            const spaces = ' '.repeat(Math.max(1, totalWidth - orderText.length - priceText.length));
+            return `${orderText}${spaces}${priceText}`;
+        }
+
+        // Function to receive and process the order data
+        function processReceiptData(orders, originalTotal, discountedTotal) {
+            // Set current date and time
+            const now = new Date();
+            document.getElementById('receiptDate').textContent = now.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            document.getElementById('receiptTime').textContent = now.toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            // Display orders
+            const orderItemsDiv = document.getElementById('orderItems');
+    orderItemsDiv.innerHTML = ''; // Clear existing items
+
+    orders.forEach(item => {
+        const orderItemDiv = document.createElement('div');
+        orderItemDiv.className = 'order-item';
+        orderItemDiv.textContent = formatOrderLine(
+            item.quantity,
+            item.name,
+            item.price * item.quantity
+        );
+        orderItemsDiv.appendChild(orderItemDiv);
+    });
+
+            // Update totals with proper spacing
+            const totalSpacing = ' '.repeat(20);
+            document.getElementById('totalAmount').textContent = 
+                `${totalSpacing}₱${parseFloat(originalTotal).toFixed(2)}`;
+            document.getElementById('discountedAmount').textContent = 
+                `${totalSpacing}₱${parseFloat(discountedTotal).toFixed(2)}`;
+        }
+
+        // Listen for receipt data from main window
+        window.addEventListener('message', function(event) {
+    console.log('Received data:', event.data); // Debug log
+    if (event.data && event.data.cart) {
+        processReceiptData(
+            event.data.cart,
+            event.data.originalTotal,
+            event.data.discountedTotal
+        );
+    } else {
+        console.log('Received data does not contain cart information');
+    }
+});
+    </script>
 </body>
 </html>
