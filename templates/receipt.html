@@ -54,6 +54,13 @@
             font-size: 8pt;
         }
 
+        .customer-info {
+            display: flex;
+            justify-content: space-between;
+            margin: 2mm 0;
+            font-size: 8pt;
+        }
+
         .order-title {
             text-align: center;
             margin: 2mm 0;
@@ -88,13 +95,24 @@
             font-size: 8pt;
         }
 
+        .footer {
+            text-align: center;
+            margin-top: 4mm;
+            font-size: 8pt;
+        }
+
+        .error-message {
+            text-align: center;
+            padding: 4mm;
+            color: red;
+        }
+
         @media print {
             body {
                 width: 45mm;
                 -webkit-print-color-adjust: exact;
             }
             
-            /* Ensure no page breaks within items */
             .order-item {
                 page-break-inside: avoid;
             }
@@ -102,12 +120,16 @@
             .total-section {
                 page-break-inside: avoid;
             }
+
+            .error-message {
+                display: none;
+            }
         }
     </style>
 </head>
 <body>
     <div class="receipt-container">
-        <img src="/static/manokLogo.png" alt="Fino's Logo" class="logo">
+        <img src="/static/manokLogo.png" alt="Restaurant Logo" class="logo">
         
         <div class="header-text">
             <strong>Sushi ● Ramen ● Japanese Cuisine</strong>
@@ -123,6 +145,11 @@
         <div class="date-time">
             <span>Date: <span id="receiptDate"></span></span>
             <span>Time: <span id="receiptTime"></span></span>
+        </div>
+
+        <div class="customer-info">
+            <span>Daily #: <span id="dailyNumber"></span></span>
+            <span>Monthly #: <span id="monthlyNumber"></span></span>
         </div>
         
         <div class="divider"></div>
@@ -145,67 +172,103 @@
                 <span id="discountedAmount"></span>
             </div>
         </div>
+
+        <div class="footer">
+            <p>Thank you for your purchase!</p>
+            <p>Please come again</p>
+        </div>
     </div>
+
     <script>
-        // Function to format the order line with proper spacing
+        function getUrlParam(param) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(param);
+        }
+
         function formatOrderLine(quantity, name, price) {
             const orderText = `${quantity}x ${name}`;
             const priceText = `${price.toFixed(2)}`;
-            const totalWidth = 35; // Adjust this number based on receipt width
+            const totalWidth = 35;
             const spaces = ' '.repeat(Math.max(1, totalWidth - orderText.length - priceText.length));
             return `${orderText}${spaces}${priceText}`;
         }
 
-        // Function to receive and process the order data
-        function processReceiptData(orders, originalTotal, discountedTotal) {
-            // Set current date and time
-            const now = new Date();
-            document.getElementById('receiptDate').textContent = now.toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            });
-            document.getElementById('receiptTime').textContent = now.toLocaleTimeString('en-US', {
-                hour: '2-digit',
-                minute: '2-digit'
-            });
+        function processReceiptData() {
+            try {
+                console.log('Processing receipt data from URL parameters');
+                
+                // Get and parse data from URL parameters
+                const items = JSON.parse(decodeURIComponent(getUrlParam('items')));
+                const dailyNumber = getUrlParam('dailyCustomerNumber');
+                const monthlyNumber = getUrlParam('monthlyCustomerNumber');
+                const orderDate = new Date(getUrlParam('date'));
+                const totalAmount = parseFloat(getUrlParam('totalAmount'));
+                const discountedTotal = parseFloat(getUrlParam('discountedTotal'));
 
-            // Display orders
-            const orderItemsDiv = document.getElementById('orderItems');
-    orderItemsDiv.innerHTML = ''; // Clear existing items
+                console.log('Parsed data:', {
+                    items,
+                    dailyNumber,
+                    monthlyNumber,
+                    orderDate,
+                    totalAmount,
+                    discountedTotal
+                });
 
-    orders.forEach(item => {
-        const orderItemDiv = document.createElement('div');
-        orderItemDiv.className = 'order-item';
-        orderItemDiv.textContent = formatOrderLine(
-            item.quantity,
-            item.name,
-            item.price * item.quantity
-        );
-        orderItemsDiv.appendChild(orderItemDiv);
-    });
+                if (!items) {
+                    throw new Error('No items data found');
+                }
 
-            // Update totals with proper spacing
-            const totalSpacing = ' '.repeat(20);
-            document.getElementById('totalAmount').textContent = 
-                `${totalSpacing}₱${parseFloat(originalTotal).toFixed(2)}`;
-            document.getElementById('discountedAmount').textContent = 
-                `${totalSpacing}₱${parseFloat(discountedTotal).toFixed(2)}`;
+                // Set date and time
+                document.getElementById('receiptDate').textContent = orderDate.toLocaleDateString();
+                document.getElementById('receiptTime').textContent = orderDate.toLocaleTimeString();
+                
+                // Set customer numbers
+                document.getElementById('dailyNumber').textContent = dailyNumber;
+                document.getElementById('monthlyNumber').textContent = monthlyNumber;
+
+                // Display order items
+                const orderItemsDiv = document.getElementById('orderItems');
+                orderItemsDiv.innerHTML = '';
+                
+                items.forEach(item => {
+                    const orderItemDiv = document.createElement('div');
+                    orderItemDiv.className = 'order-item';
+                    orderItemDiv.textContent = formatOrderLine(
+                        item.quantity,
+                        item.name,
+                        item.price * item.quantity
+                    );
+                    orderItemsDiv.appendChild(orderItemDiv);
+                });
+
+                // Update totals with proper spacing
+                const totalSpacing = ' '.repeat(20);
+                document.getElementById('totalAmount').textContent = 
+                    `${totalSpacing}₱${totalAmount.toFixed(2)}`;
+                document.getElementById('discountedAmount').textContent = 
+                    `${totalSpacing}₱${discountedTotal.toFixed(2)}`;
+
+                // Auto-print after a short delay
+                setTimeout(() => {
+                    window.print();
+                    setTimeout(() => window.close(), 500);
+                }, 500);
+
+            } catch (error) {
+                console.error('Error processing receipt data:', error);
+                document.body.innerHTML = `
+                    <div class="error-message">
+                        <h2>Error Loading Receipt</h2>
+                        <p>There was an error loading the receipt details.</p>
+                        <pre>${error.message}</pre>
+                        <p>URL Parameters: ${window.location.search}</p>
+                    </div>
+                `;
+            }
         }
 
-        // Listen for receipt data from main window
-        window.addEventListener('message', function(event) {
-    console.log('Received data:', event.data); // Debug log
-    if (event.data && event.data.cart) {
-        processReceiptData(
-            event.data.cart,
-            event.data.originalTotal,
-            event.data.discountedTotal
-        );
-    } else {
-        console.log('Received data does not contain cart information');
-    }
-});
+        // Initialize when document loads
+        document.addEventListener('DOMContentLoaded', processReceiptData);
     </script>
 </body>
 </html>

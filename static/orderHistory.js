@@ -14,7 +14,7 @@ async function loadOrders() {
         
         if (Array.isArray(data)) {
             orderHistory = data;
-            filteredOrders = [...data]; // Initialize filtered orders with all orders
+            filteredOrders = [...data];
             displayOrders(filteredOrders);
         } else {
             console.error('Invalid response data:', data);
@@ -23,6 +23,36 @@ async function loadOrders() {
     } catch (error) {
         console.error('Error loading orders:', error);
         alert('Failed to load orders. Please try again.');
+    }
+}
+
+function handleRowClick(order) {
+    console.log('Row clicked, order:', order);
+    if (confirm('Do you want to print this order?')) {
+        const receiptUrl = `/receipt?` + new URLSearchParams({
+            dailyCustomerNumber: order.dailyCustomerNumber,
+            date: order.date,
+            items: JSON.stringify(order.items),
+            totalAmount: order.totalAmount,
+            discountedTotal: order.discountedTotal,
+            monthlyCustomerNumber: order.monthlyCustomerNumber
+        });
+
+        console.log('Opening receipt URL:', receiptUrl);
+        const receiptWindow = window.open(receiptUrl, '_blank');
+
+        if (receiptWindow) {
+            receiptWindow.onload = function() {
+                console.log('Receipt window loaded, printing...');
+                setTimeout(() => {
+                    receiptWindow.print();
+                    receiptWindow.close();
+                }, 500);
+            };
+        } else {
+            console.error('Failed to open receipt window');
+            alert('Please allow pop-ups to print receipts');
+        }
     }
 }
 
@@ -125,7 +155,12 @@ function displayOrders(orders = filteredOrders) {
             <td>${order.monthlyCustomerNumber}</td>
         `;
         
+        // Add cursor pointer style to indicate clickable row
+        row.style.cursor = 'pointer';
+        
+        // Add click event listener for receipt printing
         row.addEventListener('click', () => handleRowClick(order));
+        
         ordersList.appendChild(row);
     });
 }

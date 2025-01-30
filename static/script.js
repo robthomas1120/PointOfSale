@@ -33,36 +33,27 @@ document.getElementById('orderNowBtn').addEventListener('click', async () => {
         if (response.ok) {
             const result = await response.json();
             
-            // Open receipt window
-            const receiptWindow = window.open('/receipt', '_blank');
+            // Create URL parameters for receipt
+            const receiptParams = new URLSearchParams({
+                dailyCustomerNumber: result.daily_customer_number,
+                monthlyCustomerNumber: result.monthly_customer_number,
+                date: new Date().toISOString(),
+                items: JSON.stringify(cart),
+                totalAmount: originalTotal,
+                discountedTotal: discountedTotal
+            });
+
+            // Open receipt with parameters
+            const receiptWindow = window.open(`/receipt?${receiptParams.toString()}`, '_blank');
             
-            // When receipt window loads, send the data
-            receiptWindow.onload = function() {
-                if (cart.length > 0) {
-                    console.log('Sending cart data:', {
-                        cart: cart,
-                        originalTotal: originalTotal,
-                        discountedTotal: discountedTotal
-                    });
-                    
-                    receiptWindow.postMessage({
-                        cart: cart,
-                        originalTotal: originalTotal,
-                        discountedTotal: discountedTotal
-                    }, '*');
-                    
-                    // Clear cart and update display after sending data
-                    cart = [];
-                    updateCartDisplay();
-                } else {
-                    console.log('Cart is empty, not sending data');
-                }
-                
-                // Wait a moment before printing
-                setTimeout(() => {
-                    receiptWindow.print();
-                }, 1000);
-            };
+            if (receiptWindow) {
+                // Clear cart and update display
+                cart = [];
+                updateCartDisplay();
+            } else {
+                console.error('Failed to open receipt window');
+                alert('Please allow pop-ups to print receipts');
+            }
 
             alert(`Order placed successfully!\nDaily Customer #${result.daily_customer_number}\nMonthly Customer #${result.monthly_customer_number}`);
             
