@@ -15,22 +15,41 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     margin: 0;
     padding: 0;
+    min-height: 100vh;
 }
 
 .container {
     max-width: 1400px;
-    margin: 20px auto;
+    margin: 0 auto;
     padding: 20px;
     display: flex;
     gap: 30px;
+    height: 100vh; /* Full viewport height */
+    box-sizing: border-box;
 }
 
-.menu-section, .cart-section {
+.menu-section {
     flex: 1;
     background: var(--bg-secondary);
     padding: 25px;
     border-radius: 16px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    overflow-y: auto; /* Make this section scrollable */
+    height: calc(100vh - 40px); /* Full height minus container padding */
+    max-width: calc(100% - 500px); /* Adjust based on cart width */
+}
+
+.cart-section {
+    width: 450px; /* Fixed width */
+    background: var(--bg-secondary);
+    padding: 25px;
+    border-radius: 16px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    height: calc(100vh - 40px); /* Full height minus container padding */
+    position: sticky;
+    top: 20px;
+    display: flex;
+    flex-direction: column;
 }
 
 .header {
@@ -40,6 +59,7 @@ body {
     margin-bottom: 25px;
     padding-bottom: 15px;
     border-bottom: 2px solid var(--border-color);
+    flex-shrink: 0;
 }
 
 .header h2 {
@@ -79,7 +99,21 @@ table {
     margin-top: -8px;
 }
 
-/* Updated Table Styles */
+/* Cart Table Styles */
+#cartTable {
+    flex: 1;
+    overflow-y: auto;
+    display: block; /* Make table scrollable */
+    height: calc(100% - 200px); /* Adjust based on your header and total section height */
+}
+
+#cartTable thead {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: var(--bg-secondary);
+}
+
 #cartTable th,
 #cartTable td {
     text-align: center;
@@ -170,10 +204,8 @@ td img {
 }
 
 .total-section {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-top: 25px;
+    margin-top: auto;
+    background: var(--bg-secondary);
     padding-top: 20px;
     border-top: 2px solid var(--border-color);
 }
@@ -380,4 +412,35 @@ button:hover {
 
 .discount-checkbox:checked + label {
     color: var(--accent-color);
+}
+
+/* Media Queries */
+@media (max-width: 1440px) {
+    .cart-section {
+        right: 20px;
+    }
+}
+
+@media (max-width: 1200px) {
+    .container {
+        flex-direction: column;
+        height: auto;
+    }
+
+    .menu-section {
+        max-width: 100%;
+        height: auto;
+        margin-bottom: 20px;
+    }
+
+    .cart-section {
+        width: 100%;
+        height: auto;
+        position: static;
+    }
+
+    #cartTable {
+        height: auto;
+        max-height: 400px; /* Set a max height for mobile */
+    }
 }
