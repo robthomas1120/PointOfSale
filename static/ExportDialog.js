@@ -201,46 +201,72 @@ class ExportDialog {
     exportToExcel(data) {
         console.log('Starting Excel export');
         try {
+            // Check if XLSX is available
+            if (typeof XLSX === 'undefined') {
+                throw new Error('XLSX library not found');
+            }
+    
             console.log('Formatting data for Excel');
-            const formattedData = data.map(order => ({
-                'Daily #': order.dailyCustomerNumber,
-                'Monthly #': order.monthlyCustomerNumber,
-                'Date': order.date,
-                'Time': order.time,
-                'Order Details': order.orderDetails,
-                'Total Amount': `₱${Number(order.totalAmount).toFixed(2)}`,
-                'Discounted Total': `₱${Number(order.discountedTotal).toFixed(2)}`
-            }));
-
+            const formattedData = data.map(order => {
+                // Format order details for better Excel display
+                const orderDetails = order.orderDetails
+                    .split('\n')
+                    .map(line => line.replace(/\s+/g, ' ').trim())
+                    .join('\n');
+    
+                return {
+                    'Daily #': order.dailyCustomerNumber,
+                    'Date': order.date,
+                    'Time': order.time,
+                    'Order Details': orderDetails,
+                    'Monthly #': order.monthlyCustomerNumber,
+                    'Total Amount': `P${Number(order.totalAmount).toFixed(2)}`,
+                    'Discounted Total': `P${Number(order.discountedTotal).toFixed(2)}`
+                };
+            });
+    
             console.log('Creating Excel worksheet');
+            // Create worksheet from data
             const ws = XLSX.utils.json_to_sheet(formattedData);
             
-            ws['!cols'] = [
+            // Set column widths
+            const colWidths = [
                 { wch: 10 },  // Daily #
-                { wch: 10 },  // Monthly #
                 { wch: 12 },  // Date
                 { wch: 12 },  // Time
                 { wch: 60 },  // Order Details
+                { wch: 10 },  // Monthly #
                 { wch: 15 },  // Total Amount
                 { wch: 15 }   // Discounted Total
             ];
-
+            ws['!cols'] = colWidths;
+    
+            // Set row height to accommodate multiple lines in Order Details
+            const rowHeights = formattedData.map((_, idx) => ({ hpt: 25 }));
+            ws['!rows'] = rowHeights;
+    
+            // Create workbook and append worksheet
             console.log('Creating workbook');
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Orders");
-
+    
+            // Generate filename with current date
             const date = new Date().toISOString().split('T')[0];
             const filename = `orders_export_${date}.xlsx`;
             
+            // Write file
             console.log('Saving Excel file:', filename);
             XLSX.writeFile(wb, filename);
             console.log('Excel export completed');
+    
+            return true;
         } catch (error) {
             console.error('Error in exportToExcel:', error);
             alert('Error exporting to Excel: ' + error.message);
+            return false;
         }
     }
-
+    
     exportToPDF(data) {
         console.log('Starting PDF export');
         try {
@@ -248,67 +274,94 @@ class ExportDialog {
             if (!jsPDF) {
                 throw new Error('jsPDF not found');
             }
-
+    
             console.log('Creating PDF document');
             const doc = new jsPDF({
                 orientation: "landscape",
                 unit: "mm",
                 format: "a4"
             });
-
-            doc.setFontSize(16);
-            doc.text("Orders Report", 14, 15);
-
+    
             const headers = [
                 "Daily #",
-                "Monthly #",
                 "Date",
                 "Time",
                 "Order Details",
+                "Monthly #",
                 "Total Amount",
                 "Discounted Total"
             ];
-
+    
             console.log('Preparing table data');
-            const rows = data.map(order => [
-                order.dailyCustomerNumber,
-                order.monthlyCustomerNumber,
-                order.date,
-                order.time,
-                order.orderDetails,
-                `₱${Number(order.totalAmount).toFixed(2)}`,
-                `₱${Number(order.discountedTotal).toFixed(2)}`
-            ]);
-
+            const rows = data.map(order => {
+                const orderString = order.orderDetails
+                    .split('\n')
+                    .map(line => line.replace(/±/g, 'P').trim())
+                    .join('\n');
+    
+                return [
+                    order.dailyCustomerNumber,
+                    order.date,
+                    order.time,
+                    orderString,
+                    order.monthlyCustomerNumber,
+                    `P${Number(order.totalAmount).toFixed(2)}`,
+                    `P${Number(order.discountedTotal).toFixed(2)}`
+                ];
+            });
+    
             console.log('Creating PDF table');
             doc.autoTable({
                 head: [headers],
                 body: rows,
-                startY: 25,
+                startY: 10,
                 styles: {
+                    font: "helvetica",
+                    fontStyle: "normal",
                     overflow: 'linebreak',
-                    cellPadding: 2,
-                    fontSize: 8,
-                    lineColor: 40,
+                    cellPadding: 3,
+                    fontSize: 9,
+                    lineColor: [200, 200, 200],
                     lineWidth: 0.1,
+                    textColor: 0,
+                    minCellHeight: 6
+                },
+                headStyles: {
+                    fillColor: [240, 240, 240],
+                    textColor: 0,
+                    fontSize: 9,
+                    fontStyle: 'bold',
+                    halign: 'left'
                 },
                 columnStyles: {
-                    0: { cellWidth: 15 },
-                    1: { cellWidth: 15 },
-                    2: { cellWidth: 20 },
-                    3: { cellWidth: 20 },
-                    4: { cellWidth: 'auto' },
-                    5: { cellWidth: 25 },
-                    6: { cellWidth: 25 }
+                    0: { cellWidth: 15, halign: 'center' },    // Daily #
+                    1: { cellWidth: 22 },                      // Date
+                    2: { cellWidth: 22 },                      // Time
+                    3: { cellWidth: 90 },                      // Order Details
+                    4: { cellWidth: 18, halign: 'center' },    // Monthly #
+                    5: { cellWidth: 25, halign: 'right' },     // Total Amount
+                    6: { cellWidth: 25, halign: 'right' }      // Discounted Total
                 },
-                theme: 'grid',
+                bodyStyles: {
+                    halign: 'left'
+                },
+                alternateRowStyles: {
+                    fillColor: [248, 248, 248]
+                },
                 didParseCell: function(data) {
-                    if (data.row.index === 0) {
-                        data.cell.styles.fontStyle = 'bold';
+                    // Handle specific column alignments
+                    if (data.column.index === 5 || data.column.index === 6) {
+                        data.cell.styles.halign = 'right';
+                    }
+                },
+                willDrawCell: function(data) {
+                    // Add padding for order details
+                    if (data.column.index === 3) {
+                        data.cell.styles.cellPadding = [3, 5, 3, 5];
                     }
                 }
             });
-
+    
             const date = new Date().toISOString().split('T')[0];
             const filename = `orders_export_${date}.pdf`;
             
@@ -320,4 +373,5 @@ class ExportDialog {
             alert('Error exporting to PDF: ' + error.message);
         }
     }
+    
 }
