@@ -6,110 +6,112 @@
     <title>Receipt</title>
     <style>
         @page {
-            size: 45mm auto;
+            size: 48mm auto;
             margin: 0;
         }
         
         body {
-            width: 45mm;
+            width: 48mm;
             margin: 0;
-            padding: 2mm;
+            padding: 1.5mm;
             font-family: monospace;
-            line-height: 1.5;
+            line-height: 1.4;
             font-size: 8pt;
         }
 
         .receipt-container {
             width: 100%;
+            max-width: 45mm;
+            margin: 0 auto;
         }
 
         .logo {
-            width: 35mm;
+            width: 32mm;
             margin: 0 auto;
             display: block;
         }
 
         .header-text {
             text-align: center;
-            margin: 2mm 0;
-            font-size: 9pt;
+            margin: 1.5mm 0;
+            font-size: 8pt;
         }
 
         .contact-info {
             text-align: center;
             margin: 1mm 0;
-            font-size: 8pt;
+            font-size: 7pt;
         }
 
         .divider {
             width: 100%;
             border-bottom: 1px dashed #000;
-            margin: 2mm 0;
+            margin: 1.5mm 0;
         }
 
         .date-time {
             display: flex;
             justify-content: space-between;
-            margin: 2mm 0;
-            font-size: 8pt;
+            margin: 1.5mm 0;
+            font-size: 7pt;
         }
 
         .customer-info {
             display: flex;
             justify-content: space-between;
-            margin: 2mm 0;
-            font-size: 8pt;
+            margin: 1.5mm 0;
+            font-size: 7pt;
         }
 
         .order-title {
             text-align: center;
-            margin: 2mm 0;
+            margin: 1.5mm 0;
             font-weight: bold;
+            font-size: 8pt;
         }
 
         .order-item {
             display: flex;
             justify-content: space-between;
-            margin: 1mm 0;
+            margin: 0.8mm 0;
             white-space: pre;
-            font-size: 8pt;
-        }
-
-        .item-left {
-            text-align: left;
-        }
-
-        .item-right {
-            text-align: right;
+            font-size: 7pt;
         }
 
         .total-section {
-            margin-top: 2mm;
+            margin-top: 1.5mm;
         }
 
         .total-line {
             display: flex;
             justify-content: space-between;
             white-space: pre;
-            margin: 1mm 0;
-            font-size: 8pt;
+            margin: 0.8mm 0;
+            font-size: 7pt;
+            width: 100%;
+        }
+
+        .price-align {
+            width: 80px;
+            text-align: right;
         }
 
         .footer {
             text-align: center;
-            margin-top: 4mm;
-            font-size: 8pt;
+            margin-top: 3mm;
+            font-size: 7pt;
         }
 
         .error-message {
             text-align: center;
-            padding: 4mm;
+            padding: 3mm;
             color: red;
+            font-size: 7pt;
         }
 
         @media print {
             body {
-                width: 45mm;
+                width: 48mm;
                 -webkit-print-color-adjust: exact;
             }
             
@@ -165,11 +167,11 @@
         <div class="total-section">
             <div class="total-line">
                 <span>Total:</span>
-                <span id="totalAmount"></span>
+                <span id="totalAmount" class="price-align"></span>
             </div>
             <div class="total-line">
                 <span>After Discount:</span>
-                <span id="discountedAmount"></span>
+                <span id="discountedAmount" class="price-align"></span>
             </div>
         </div>
 
@@ -188,16 +190,16 @@
         function formatOrderLine(quantity, name, price) {
             const orderText = `${quantity}x ${name}`;
             const priceText = `${price.toFixed(2)}`;
-            const totalWidth = 35;
-            const spaces = ' '.repeat(Math.max(1, totalWidth - orderText.length - priceText.length));
-            return `${orderText}${spaces}${priceText}`;
+            const maxNameWidth = 22; // Reduced width for name to align prices
+            const truncatedName = orderText.length > maxNameWidth 
+                ? orderText.substring(0, maxNameWidth - 3) + '...' 
+                : orderText;
+            const spaces = ' '.repeat(Math.max(1, maxNameWidth - truncatedName.length));
+            return `${truncatedName}${spaces}${priceText}`;
         }
 
         function processReceiptData() {
             try {
-                console.log('Processing receipt data from URL parameters');
-                
-                // Get and parse data from URL parameters
                 const items = JSON.parse(decodeURIComponent(getUrlParam('items')));
                 const dailyNumber = getUrlParam('dailyCustomerNumber');
                 const monthlyNumber = getUrlParam('monthlyCustomerNumber');
@@ -205,28 +207,11 @@
                 const totalAmount = parseFloat(getUrlParam('totalAmount'));
                 const discountedTotal = parseFloat(getUrlParam('discountedTotal'));
 
-                console.log('Parsed data:', {
-                    items,
-                    dailyNumber,
-                    monthlyNumber,
-                    orderDate,
-                    totalAmount,
-                    discountedTotal
-                });
-
-                if (!items) {
-                    throw new Error('No items data found');
-                }
-
-                // Set date and time
                 document.getElementById('receiptDate').textContent = orderDate.toLocaleDateString();
                 document.getElementById('receiptTime').textContent = orderDate.toLocaleTimeString();
-                
-                // Set customer numbers
                 document.getElementById('dailyNumber').textContent = dailyNumber;
                 document.getElementById('monthlyNumber').textContent = monthlyNumber;
 
-                // Display order items
                 const orderItemsDiv = document.getElementById('orderItems');
                 orderItemsDiv.innerHTML = '';
                 
@@ -241,21 +226,17 @@
                     orderItemsDiv.appendChild(orderItemDiv);
                 });
 
-                // Update totals with proper spacing
-                const totalSpacing = ' '.repeat(20);
                 document.getElementById('totalAmount').textContent = 
-                    `${totalSpacing}₱${totalAmount.toFixed(2)}`;
+                    `₱${totalAmount.toFixed(2)}`;
                 document.getElementById('discountedAmount').textContent = 
-                    `${totalSpacing}₱${discountedTotal.toFixed(2)}`;
+                    `₱${discountedTotal.toFixed(2)}`;
 
-                // Auto-print after a short delay
                 setTimeout(() => {
                     window.print();
                     setTimeout(() => window.close(), 500);
                 }, 500);
 
             } catch (error) {
-                console.error('Error processing receipt data:', error);
                 document.body.innerHTML = `
                     <div class="error-message">
                         <h2>Error Loading Receipt</h2>
@@ -267,7 +248,6 @@
             }
         }
 
-        // Initialize when document loads
         document.addEventListener('DOMContentLoaded', processReceiptData);
     </script>
 </body>
