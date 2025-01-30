@@ -45,7 +45,7 @@ body {
     padding: 25px;
     border-radius: 16px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    height: calc(100vh - 40px); /* Full height minus container padding */
+    height: calc(100vh - 100px); /* Full height minus container padding */
     position: sticky;
     top: 20px;
     display: flex;
