@@ -1,6 +1,7 @@
 // kitchen.js
 let orders = [];
 const REFRESH_INTERVAL = 10000; // Refresh every 10 seconds
+const kitchenChannel = new BroadcastChannel('kitchen_updates');
 
 function formatTime(dateString) {
     const date = new Date(dateString);
@@ -51,6 +52,12 @@ async function loadOrders() {
         const newOrders = await response.json();
         
         if (Array.isArray(newOrders)) {
+            // Broadcast new orders to other windows
+            kitchenChannel.postMessage({
+                type: 'ordersUpdated',
+                orders: newOrders
+            });
+            
             orders = newOrders;
             displayOrders();
         }
@@ -80,6 +87,12 @@ async function completeOrder(orderId) {
         });
 
         if (response.ok) {
+            // Broadcast the completion to other windows
+            kitchenChannel.postMessage({
+                type: 'orderCompleted',
+                orderId: orderId
+            });
+            
             // Remove the completed order card from the DOM
             const orderCard = document.getElementById(`order-${orderId}`);
             if (orderCard) {
@@ -93,6 +106,40 @@ async function completeOrder(orderId) {
         console.error('Error completing order:', error);
     }
 }
+
+kitchenChannel.onmessage = (event) => {
+    if (event.data.type === 'orderCompleted') {
+        // Remove the completed order from this window
+        const orderCard = document.getElementById(`order-${event.data.orderId}`);
+        if (orderCard) {
+            orderCard.remove();
+        }
+        
+        // Update local orders array
+        orders = orders.filter(order => order.id !== event.data.orderId);
+    }
+};
+
+kitchenChannel.onmessage = (event) => {
+    if (event.data.type === 'orderCompleted') {
+        // Handle completed orders
+        const orderCard = document.getElementById(`order-${event.data.orderId}`);
+        if (orderCard) {
+            orderCard.remove();
+        }
+        orders = orders.filter(order => order.id !== event.data.orderId);
+    } else if (event.data.type === 'ordersUpdated') {
+        // Update orders if they're different
+        if (JSON.stringify(orders) !== JSON.stringify(event.data.orders)) {
+            orders = event.data.orders;
+            displayOrders();
+        }
+    }
+};
+
+window.addEventListener('beforeunload', () => {
+    kitchenChannel.close();
+});
 
 // Event Listeners
 document.getElementById('refreshBtn').addEventListener('click', loadOrders);

@@ -258,7 +258,9 @@ document.getElementById('setPriceBtn').addEventListener('click', function() {
 
 document.getElementById('kitchenBtn').addEventListener('click', function(e) {
     e.preventDefault();
-    window.open('/kitchen', 'kitchen_display', 'width=1200,height=800');
+    // Open two kitchen windows with unique names
+    window.open('/kitchen', 'kitchen_display_1', 'width=1200,height=800');
+    window.open('/kitchen', 'kitchen_display_2', 'width=1200,height=800');
 });
 
 // Initialize the menu
