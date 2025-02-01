@@ -177,7 +177,7 @@ class ExportDialog {
                     time: time,
                     orderDetails: order.items.map(item => {
                         console.log('Processing item:', item);
-                        return `${item.name} x${item.quantity} = ₱${(item.price * item.quantity).toFixed(2)}`;
+                        return `${item.name} x${item.quantity} = PHP ${(item.price * item.quantity).toFixed(2)}`;
                     }).join('\n'),
                     totalAmount: order.totalAmount,
                     discountedTotal: order.discountedTotal || order.totalAmount
@@ -220,8 +220,8 @@ class ExportDialog {
                     'Time': order.time,
                     'Order Details': orderDetails,
                     'Monthly #': order.monthlyCustomerNumber,
-                    'Total Amount': `P${Number(order.totalAmount).toFixed(2)}`,
-                    'Discounted Total': `P${Number(order.discountedTotal).toFixed(2)}`
+                    'Total Amount': `PHP ` + `${Number(order.totalAmount).toFixed(2)}`,
+                    'Discounted Total': `PHP ` + `${Number(order.discountedTotal).toFixed(2)}`
                 };
             });
     
@@ -295,18 +295,15 @@ class ExportDialog {
             console.log('Preparing table data');
             const rows = data.map(order => {
                 const orderString = order.orderDetails
-                    .split('\n')
-                    .map(line => line.replace(/±/g, 'P').trim())
-                    .join('\n');
-    
+
                 return [
                     order.dailyCustomerNumber,
                     order.date,
                     order.time,
                     orderString,
                     order.monthlyCustomerNumber,
-                    `P${Number(order.totalAmount).toFixed(2)}`,
-                    `P${Number(order.discountedTotal).toFixed(2)}`
+                    `PHP ${Number(order.totalAmount).toFixed(2)}`,
+                    `PHP ${Number(order.discountedTotal).toFixed(2)}`
                 ];
             });
     
