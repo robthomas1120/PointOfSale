@@ -3,8 +3,10 @@ from datetime import datetime
 import sqlite3
 import os
 import json
+from firebase import Firebase
 
 app = Flask(__name__)
+firebase = Firebase()
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
 
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
@@ -296,7 +298,7 @@ def place_order():
         
         # Make sure discounted_total has a default value if not provided
         discounted_total = order_data.get('discountedTotal', order_data['totalAmount'])
-        
+
         c.execute('''
             INSERT INTO orders (
                 daily_customer_number, monthly_customer_number,
@@ -309,6 +311,8 @@ def place_order():
             order_data['totalAmount'],
             discounted_total
         ))
+
+        firebase.sync_order([daily_number, monthly_number, json.dumps(order_data['items']), order_data['totalAmount'], discounted_total, datetime.now()])
         
         conn.commit()
         conn.close()
