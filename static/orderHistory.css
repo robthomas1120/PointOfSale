@@ -194,6 +194,8 @@ tr:not(thead tr) {
 
 tr:not(thead tr):hover {
     transform: translateY(-2px);
+    background-color: #4CAF5010; /* Very subtle green on hover */
+    cursor: pointer;
 }
 
 td:first-child, th:first-child {
@@ -394,4 +396,195 @@ table td:nth-child(4) {
 .cancel-button:hover {
     background-color: var(--border-color);
     transform: translateY(-2px);
+}
+
+/* Add these styles at the end of your existing CSS */
+
+/* Better responsive containers */
+@media (max-width: 1200px) {
+    .container {
+        padding: 15px;
+        margin: 10px;
+    }
+}
+
+/* Tablet and smaller desktops */
+@media (max-width: 992px) {
+    .header {
+        flex-direction: column;
+        text-align: center;
+        gap: 15px;
+    }
+
+    .filter-container {
+        gap: 15px;
+    }
+
+    .section-content {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .date-filter-group {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .filter-group {
+        width: 100%;
+    }
+
+    .range-inputs {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .filter-input {
+        width: 100%;
+        min-width: unset;
+    }
+
+    .range-separator {
+        margin: 5px 0;
+    }
+
+    /* Table adjustments */
+    .orders-container {
+        overflow-x: auto;
+        padding: 15px;
+    }
+
+    table {
+        min-width: 900px; /* Ensure table doesn't get too squeezed */
+    }
+}
+
+/* Mobile devices */
+@media (max-width: 576px) {
+    .header h1 {
+        font-size: 1.5rem;
+    }
+
+    .header-buttons {
+        flex-direction: column;
+        width: 100%;
+        gap: 10px;
+    }
+
+    .header-buttons button,
+    .header-buttons a {
+        width: 100%;
+        text-align: center;
+    }
+
+    .filter-section {
+        padding: 15px;
+    }
+
+    .filter-button {
+        width: 100%;
+        padding: 10px;
+    }
+
+    /* Modal adjustments */
+    .modal-content {
+        width: 95%;
+        padding: 15px;
+        margin: 10px;
+    }
+
+    .format-buttons {
+        flex-direction: column;
+    }
+
+    .modal-footer {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .modal-footer button {
+        width: 100%;
+    }
+
+    .close-button {
+        padding: 10px;
+    }
+
+    /* Table cell adjustments */
+    td, th {
+        padding: 10px;
+        font-size: 0.9rem;
+    }
+}
+
+/* Handle very small screens */
+@media (max-width: 360px) {
+    .container {
+        padding: 10px;
+        margin: 5px;
+    }
+
+    .header h1 {
+        font-size: 1.2rem;
+    }
+
+    .filter-section {
+        padding: 10px;
+    }
+
+    .filter-details p {
+        font-size: 0.9rem;
+    }
+}
+
+/* Improve table scrolling experience on mobile */
+.orders-container {
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+}
+
+.orders-container::-webkit-scrollbar {
+    height: 6px;
+}
+
+.orders-container::-webkit-scrollbar-track {
+    background: var(--bg-primary);
+    border-radius: 3px;
+}
+
+.orders-container::-webkit-scrollbar-thumb {
+    background: var(--accent-color);
+    border-radius: 3px;
+}
+
+/* Better touch targets for mobile */
+@media (hover: none) and (pointer: coarse) {
+    .filter-button,
+    .back-button,
+    select,
+    input[type="date"],
+    input[type="time"] {
+        min-height: 44px; /* Minimum touch target size */
+    }
+
+    tr:not(thead tr) td {
+        min-height: 44px;
+    }
+
+    .format-button {
+        padding: 20px;
+    }
+}
+
+/* Improve modal on mobile */
+@media (max-height: 600px) {
+    .modal-content {
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .modal-body {
+        max-height: 60vh;
+        overflow-y: auto;
+    }
 }
