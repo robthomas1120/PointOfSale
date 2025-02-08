@@ -1,138 +1,111 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Order History</title>
-    <link rel="stylesheet" href="orderHistory.css">
-    <link rel="icon" href="{{ url_for('static', filename='favicon.jpg') }}">
+    <link rel="stylesheet" href="orderHistory.css" />
+    <link rel="icon" href="favicon.jpg" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
     <script src="ExportDialog.js"></script>
     <script src="orderHistory.js"></script>
     <script defer src="/__/firebase/11.3.0/firebase-app-compat.js"></script>
-    <script defer src="/__/firebase/11.3.0/firebase-firestore-compat.js"></script>
+    <script
+      defer
+      src="/__/firebase/11.3.0/firebase-firestore-compat.js"
+    ></script>
     <script defer src="/__/firebase/init.js?useEmulator=true"></script>
   </head>
   <body>
     <div class="container">
       <header class="header">
-          <h1>Order History</h1>
-          <div class="header-buttons">
-              <button id="exportButton" class="filter-button">Export</button>
-              <button id="resetFilters" class="filter-button reset">Reset Filters</button>
-              <a href="/" class="back-button">Back to POS</a>
-          </div>
+        <h1>Order History</h1>
+        <div class="header-buttons">
+          <button id="exportButton" class="filter-button">Export</button>
+          <button id="resetFilters" class="filter-button reset">
+            Reset Filters
+          </button>
+          <a href="/" class="back-button">Back to POS</a>
+        </div>
       </header>
 
       <div class="filter-container">
-
-          <!-- Date Range Section -->
-          <div class="filter-section">
-              <div class="section-content">
-                  <div class="date-filter-group">
-                      <div class="filter-group">
-                          <label>Date Range:</label>
-                          <div class="range-inputs">
-                              <input type="date" id="startDate" class="filter-input">
-                              <span class="range-separator">to</span>
-                              <input type="date" id="endDate" class="filter-input">
-                          </div>
-                      </div>
-
-                      <div class="filter-group">
-                          <label>Time Range:</label>
-                          <div class="range-inputs">
-                              <input type="time" id="startTime" class="filter-input">
-                              <span class="range-separator">to</span>
-                              <input type="time" id="endTime" class="filter-input">
-                          </div>
-                      </div>
-                  </div>
-                  <button id="applyDateFilter" class="filter-button">Apply Range</button>
+        <!-- Date Range Section -->
+        <div class="filter-section">
+          <div class="section-content">
+            <div class="date-filter-group">
+              <div class="filter-group">
+                <label>Date Range:</label>
+                <div class="range-inputs">
+                  <input type="date" id="startDate" class="filter-input" />
+                  <span class="range-separator">to</span>
+                  <input type="date" id="endDate" class="filter-input" />
+                </div>
               </div>
-          </div>
 
-          <!-- Sort Section -->
-          <div class="filter-section">
-              <div class="section-content">
-                  <div class="filter-group">
-                      <label>Sort by:</label>
-                      <select id="sortBy" class="filter-input">
-                          <option value="date">Date</option>
-                          <option value="dailyCustomerNumber">Daily Customer Number</option>
-                          <option value="monthlyCustomerNumber">Monthly CustomerNumber</option>
-                          <option value="totalAmount">Total Amount</option>
-                      </select>
-                  </div>
-
-                  <div class="filter-group">
-                      <label>Order:</label>
-                      <select id="sortOrder" class="filter-input">
-                          <option value="desc">Descending</option>
-                          <option value="asc">Ascending</option>
-                      </select>
-                  </div>
-
-                  <button id="applySort" class="filter-button">Apply Sort</button>
+              <div class="filter-group">
+                <label>Time Range:</label>
+                <div class="range-inputs">
+                  <input type="time" id="startTime" class="filter-input" />
+                  <span class="range-separator">to</span>
+                  <input type="time" id="endTime" class="filter-input" />
+                </div>
               </div>
+            </div>
+            <button id="applyDateFilter" class="filter-button">
+              Apply Range
+            </button>
           </div>
+        </div>
 
-          
+        <!-- Sort Section -->
+        <div class="filter-section">
+          <div class="section-content">
+            <div class="filter-group">
+              <label>Sort by:</label>
+              <select id="sortBy" class="filter-input">
+                <option value="date">Date</option>
+                <option value="dailyCustomerNumber">
+                  Daily Customer Number
+                </option>
+                <option value="monthlyCustomerNumber">
+                  Monthly CustomerNumber
+                </option>
+                <option value="totalAmount">Total Amount</option>
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <label>Order:</label>
+              <select id="sortOrder" class="filter-input">
+                <option value="desc">Descending</option>
+                <option value="asc">Ascending</option>
+              </select>
+            </div>
+
+            <button id="applySort" class="filter-button">Apply Sort</button>
+          </div>
+        </div>
       </div>
 
       <div class="orders-container">
-          <table id="ordersTable">
-              <thead>
-                  <tr>
-                      <th>Daily Customer #</th>
-                      <th>Date</th>
-                      <th>Time</th>
-                      <th>Order Details</th>
-                      <th>Original Total</th>
-                      <th>Discounted Total</th>
-                      <th>Monthly Customer #</th>
-                  </tr>
-              </thead>
-              <tbody id="ordersList">
-              </tbody>
-          </table>
+        <table id="ordersTable">
+          <thead>
+            <tr>
+              <th>Daily Customer #</th>
+              <th>Date</th>
+              <th>Time</th>
+              <th>Order Details</th>
+              <th>Original Total</th>
+              <th>Discounted Total</th>
+              <th>Monthly Customer #</th>
+            </tr>
+          </thead>
+          <tbody id="ordersList"></tbody>
+        </table>
       </div>
-  </div>
-
-    <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        const loadEl = document.querySelector('#load');
-
-        try {
-          let app = firebase.app();
-          let db = firebase.firestore();
-
-          // 👇 Connect to Firestore Emulator if running locally
-          if (location.hostname === "localhost") {
-            db.useEmulator("localhost", 8080);
-            console.log("🔥 Using Firestore Emulator!");
-          } else {
-            console.log("🚀 Connected to Real Firestore!");
-          }
-
-          db.collection("orders").get()
-          .then((querySnapshot) => {
-            querySnapshot.forEach((doc) => {
-              console.log(`Document ID: ${doc.id}, Data:`, doc.data());
-            });
-          })
-          .catch((error) => {
-            console.error("Error fetching documents: ", error);
-          });
-
-        } catch (e) {
-          console.error("Firebase SDK error:", e);
-          loadEl.textContent = 'Error loading the Firebase SDK, check the console.';
-        }
-      });
-
-    </script>
+    </div>
   </body>
 </html>
