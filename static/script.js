@@ -55,10 +55,10 @@ document.getElementById('orderNowBtn').addEventListener('click', async () => {
                 alert('Please allow pop-ups to print receipts');
             }
 
-            alert(`Order placed successfully!\nDaily Customer #${result.daily_customer_number}\nMonthly Customer #${result.monthly_customer_number}`);
+            //alert(`Order placed successfully!\nDaily Customer #${result.daily_customer_number}\nMonthly Customer #${result.monthly_customer_number}`);
             
             // Open kitchen display
-            window.open('/kitchen', 'kitchen_display', 'width=1200,height=800');
+            //window.open('/kitchen', 'kitchen_display', 'width=1200,height=800');
         } else {
             alert('Error placing order. Please try again.');
         }

@@ -1,4 +1,5 @@
 venv
 .DS_Store
-pos.db
+.hidden
 .venv
+pos.db

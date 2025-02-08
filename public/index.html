@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POS Menu</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='transparentManok.png') }}">
+</head>
+<body>
+    <div class="container">
+        <!-- Menu Section -->
+        <section class="menu-section">
+            <div class="header">
+                <h2>Menu Items</h2>
+                <div class="button-group">
+                    <button onclick="window.location.href='{{ url_for('add_item_page') }}'" class="add-button admin-only header-btn">Add Item</button>
+                    <button id="setPriceBtn" class="set-price-button admin-only header-btn">Set Price</button>
+                    <button class="kitchen-button header-btn" id="kitchenBtn">Kitchen Display</button>
+                    <button onclick="window.location.href='{{ url_for('order_history') }}'" class="history-button header-btn">Order History</button>            
+                </div>
+            </div>
+            
+            <!-- Search Bar -->
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="Search items..." class="search-bar">
+            </div>
+
+            <!-- Menu Items Table -->
+            <table id="itemsTable">
+                <tbody id="itemsList">
+                </tbody>
+            </table>
+        </section>
+        
+        <!-- Cart Section -->
+        <section class="cart-section">
+            <div class="header">
+                <h2>Your Order</h2>
+            </div>
+            
+            <!-- Cart Items Table -->
+            <table id="cartTable">
+                <thead>
+                    <tr>
+                        <th scope="col">Discount</th>
+                        <th scope="col">Item</th>
+                        <th scope="col">Quantity</th>
+                        <th scope="col">Total</th>
+                    </tr>
+                </thead>
+                <tbody id="cartItems">
+                </tbody>
+            </table>
+            
+            <!-- Updated Total Section -->
+            <div class="total-section">
+                <div class="price-row">
+                    <span class="price-label">Original Price:</span>
+                    <span class="price-value">₱<span id="cartTotal">0.00</span></span>
+                </div>
+                <div class="price-row">
+                    <span class="price-label">Discounted Price:</span>
+                    <span class="price-value discounted-price">₱<span id="discountedTotal">0.00</span></span>
+                </div>
+                <button id="orderNowBtn" class="order-button">Order Now</button>
+            </div>
+        </section>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
