@@ -3,85 +3,136 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Welcome to Firebase Hosting</title>
-
-    <!-- update the version number as needed -->
+    <title>Order History</title>
+    <link rel="stylesheet" href="orderHistory.css">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.jpg') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+    <script src="ExportDialog.js"></script>
+    <script src="orderHistory.js"></script>
     <script defer src="/__/firebase/11.3.0/firebase-app-compat.js"></script>
-    <!-- include only the Firebase features as you need -->
     <script defer src="/__/firebase/11.3.0/firebase-firestore-compat.js"></script>
-    <!-- 
-      initialize the SDK after all desired features are loaded, set useEmulator to false
-      to avoid connecting the SDK to running emulators.
-    -->
     <script defer src="/__/firebase/init.js?useEmulator=true"></script>
-
-    <style media="screen">
-      body { background: #ECEFF1; color: rgba(0,0,0,0.87); font-family: Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; }
-      #message { background: white; max-width: 360px; margin: 100px auto 16px; padding: 32px 24px; border-radius: 3px; }
-      #message h2 { color: #ffa100; font-weight: bold; font-size: 16px; margin: 0 0 8px; }
-      #message h1 { font-size: 22px; font-weight: 300; color: rgba(0,0,0,0.6); margin: 0 0 16px;}
-      #message p { line-height: 140%; margin: 16px 0 24px; font-size: 14px; }
-      #message a { display: block; text-align: center; background: #039be5; text-transform: uppercase; text-decoration: none; color: white; padding: 16px; border-radius: 4px; }
-      #message, #message a { box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24); }
-      #load { color: rgba(0,0,0,0.4); text-align: center; font-size: 13px; }
-      @media (max-width: 600px) {
-        body, #message { margin-top: 0; background: white; box-shadow: none; }
-        body { border-top: 16px solid #ffa100; }
-      }
-    </style>
   </head>
   <body>
-    <div id="message">
-      <h2>Welcome</h2>
-      <h1>Firebase Hosting Setup Complete</h1>
-      <p>You're seeing this because you've successfully setup Firebase Hosting. Now it's time to go build something extraordinary!</p>
-      <a target="_blank" href="https://firebase.google.com/docs/hosting/">Open Hosting Documentation</a>
-    </div>
-    <p id="load">Firebase SDK Loading&hellip;</p>
+    <div class="container">
+      <header class="header">
+          <h1>Order History</h1>
+          <div class="header-buttons">
+              <button id="exportButton" class="filter-button">Export</button>
+              <button id="resetFilters" class="filter-button reset">Reset Filters</button>
+              <a href="/" class="back-button">Back to POS</a>
+          </div>
+      </header>
+
+      <div class="filter-container">
+
+          <!-- Date Range Section -->
+          <div class="filter-section">
+              <div class="section-content">
+                  <div class="date-filter-group">
+                      <div class="filter-group">
+                          <label>Date Range:</label>
+                          <div class="range-inputs">
+                              <input type="date" id="startDate" class="filter-input">
+                              <span class="range-separator">to</span>
+                              <input type="date" id="endDate" class="filter-input">
+                          </div>
+                      </div>
+
+                      <div class="filter-group">
+                          <label>Time Range:</label>
+                          <div class="range-inputs">
+                              <input type="time" id="startTime" class="filter-input">
+                              <span class="range-separator">to</span>
+                              <input type="time" id="endTime" class="filter-input">
+                          </div>
+                      </div>
+                  </div>
+                  <button id="applyDateFilter" class="filter-button">Apply Range</button>
+              </div>
+          </div>
+
+          <!-- Sort Section -->
+          <div class="filter-section">
+              <div class="section-content">
+                  <div class="filter-group">
+                      <label>Sort by:</label>
+                      <select id="sortBy" class="filter-input">
+                          <option value="date">Date</option>
+                          <option value="dailyCustomerNumber">Daily Customer Number</option>
+                          <option value="monthlyCustomerNumber">Monthly CustomerNumber</option>
+                          <option value="totalAmount">Total Amount</option>
+                      </select>
+                  </div>
+
+                  <div class="filter-group">
+                      <label>Order:</label>
+                      <select id="sortOrder" class="filter-input">
+                          <option value="desc">Descending</option>
+                          <option value="asc">Ascending</option>
+                      </select>
+                  </div>
+
+                  <button id="applySort" class="filter-button">Apply Sort</button>
+              </div>
+          </div>
+
+          
+      </div>
+
+      <div class="orders-container">
+          <table id="ordersTable">
+              <thead>
+                  <tr>
+                      <th>Daily Customer #</th>
+                      <th>Date</th>
+                      <th>Time</th>
+                      <th>Order Details</th>
+                      <th>Original Total</th>
+                      <th>Discounted Total</th>
+                      <th>Monthly Customer #</th>
+                  </tr>
+              </thead>
+              <tbody id="ordersList">
+              </tbody>
+          </table>
+      </div>
+  </div>
 
     <script>
       document.addEventListener('DOMContentLoaded', function() {
         const loadEl = document.querySelector('#load');
-        // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
-        // // The Firebase SDK is initialized and available here!
-        //
-        // firebase.auth().onAuthStateChanged(user => { });
-        // firebase.database().ref('/path/to/ref').on('value', snapshot => { });
-        // firebase.firestore().doc('/foo/bar').get().then(() => { });
-        // firebase.functions().httpsCallable('yourFunction')().then(() => { });
-        // firebase.messaging().requestPermission().then(() => { });
-        // firebase.storage().ref('/path/to/ref').getDownloadURL().then(() => { });
-        // firebase.analytics(); // call to activate
-        // firebase.analytics().logEvent('tutorial_completed');
-        // firebase.performance(); // call to activate
-        //
-        // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
 
         try {
           let app = firebase.app();
-          let features = [
-            'firestore',
-          ].filter(feature => typeof app[feature] === 'function');
-          loadEl.textContent = `Firebase SDK loaded with ${features.join(', ')}`;
+          let db = firebase.firestore();
 
-          // Load data from Firestore
-          const db = firebase.firestore();
-          const myData = db.collection('data').doc('tite');
-          myData.get()
-            .then(doc => {
-              const data = doc.data();
-              console.log(`Data: ${JSON.stringify(data)}`);
-            })
-            .catch(err => {
-              console.log(err);
-              loadEl.textContent = 'Error getting data';
+          // 👇 Connect to Firestore Emulator if running locally
+          if (location.hostname === "localhost") {
+            db.useEmulator("localhost", 8080);
+            console.log("🔥 Using Firestore Emulator!");
+          } else {
+            console.log("🚀 Connected to Real Firestore!");
+          }
+
+          db.collection("orders").get()
+          .then((querySnapshot) => {
+            querySnapshot.forEach((doc) => {
+              console.log(`Document ID: ${doc.id}, Data:`, doc.data());
             });
+          })
+          .catch((error) => {
+            console.error("Error fetching documents: ", error);
+          });
 
         } catch (e) {
-          console.error(e);
+          console.error("Firebase SDK error:", e);
           loadEl.textContent = 'Error loading the Firebase SDK, check the console.';
         }
       });
+
     </script>
   </body>
 </html>
