@@ -49,8 +49,6 @@ class Firebase():
         print("Orders uploaded to Firestore.")
 
     def sync_order(self, raw_data):
-        print("tite")
-
         header = copy.deepcopy(self.headers)
         header.remove('id')
         header.remove('status')

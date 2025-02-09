@@ -3,10 +3,9 @@ from datetime import datetime
 import sqlite3
 import os
 import json
-from firebase import Firebase
+from tasks import queue_fb_sync
 
 app = Flask(__name__)
-firebase = Firebase()
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
 
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
@@ -236,14 +235,11 @@ def place_order():
 
         daily_number, monthly_number = c.fetchone()
 
-        print(daily_number, monthly_number)
-
         # firebase.sync_order([daily_number, monthly_number, json.dumps(order_data['items']), order_data['totalAmount'], discounted_total, str(datetime.now())])
-        
+        queue_fb_sync([daily_number, monthly_number, json.dumps(order_data['items']), order_data['totalAmount'], discounted_total, str(datetime.now())])
+
         conn.commit()
         conn.close()
-        
-        print('tite')
 
         return jsonify({
             'success': True,
