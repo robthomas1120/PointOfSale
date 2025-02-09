@@ -26,6 +26,7 @@ async function loadOrders() {
     let data = [];
     await db
       .collection("orders")
+      .orderBy("order_date", "desc")
       .get()
       .then((querySnapshot) => {
         querySnapshot.forEach((doc) => {

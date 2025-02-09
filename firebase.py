@@ -7,8 +7,10 @@ import copy
 
 class Firebase():
     def __init__(self):
-        self.cred = credentials.Certificate(".hidden/credentials.json")
-        self.app = firebase_admin.initialize_app(self.cred)
+        if not firebase_admin._apps:
+            self.cred = credentials.Certificate(".hidden/credentials.json")
+            self.app = firebase_admin.initialize_app(self.cred)
+        
         self.store = firestore.client()
         self.headers = ['id', 'daily_customer_number', 'monthly_customer_number', 'items', 'total_amount', 'discounted_total', 'order_date', 'status']
 
