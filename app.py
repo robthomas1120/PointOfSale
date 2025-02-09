@@ -36,7 +36,8 @@ def init_db():
             total_amount REAL,
             discounted_total REAL,
             order_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-            status TEXT DEFAULT 'pending'
+            status TEXT DEFAULT 'pending',
+            synced BOOLEAN DEFAULT FALSE
         )
     ''')
    
@@ -100,6 +101,7 @@ def get_kitchen_orders():
         
         orders = []
         for row in c.fetchall():
+            print(row)
             try:
                 orders.append({
                     'id': row[0],
@@ -230,13 +232,13 @@ def place_order():
         print(last_inserted)
 
         c.execute('''
-            SELECT daily_customer_number, monthly_customer_number FROM orders WHERE rowid = ?
+            SELECT id, daily_customer_number, monthly_customer_number FROM orders WHERE rowid = ?
         ''', (last_inserted,))
 
-        daily_number, monthly_number = c.fetchone()
+        uuid, daily_number, monthly_number = c.fetchone()
 
         # firebase.sync_order([daily_number, monthly_number, json.dumps(order_data['items']), order_data['totalAmount'], discounted_total, str(datetime.now())])
-        queue_fb_sync([daily_number, monthly_number, json.dumps(order_data['items']), order_data['totalAmount'], discounted_total, str(datetime.now())])
+        queue_fb_sync([uuid, daily_number, monthly_number, json.dumps(order_data['items']), order_data['totalAmount'], discounted_total, str(datetime.now())])
 
         conn.commit()
         conn.close()

@@ -52,14 +52,17 @@ class Firebase():
 
     def sync_order(self, raw_data):
         header = copy.deepcopy(self.headers)
-        header.remove('id')
+        # header.remove('id')
         header.remove('status')
 
         batch = self.store.batch()
         data_item = dict(zip(header, raw_data))
+        uuid = data_item.pop('id')
         data_item["date_synced"] = str(datetime.now())
 
-        doc_ref = self.store.collection('orders').document()
+        doc_ref = self.store.collection('orders').document(str(uuid))
         batch.set(doc_ref, data_item)
 
         batch.commit()
+
+        return uuid

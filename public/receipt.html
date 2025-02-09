@@ -1,243 +1,249 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Receipt</title>
     <style>
-        @page {
-            size: 48mm auto;
-            margin: 0;
-        }
-        
+      @page {
+        size: 48mm auto;
+        margin: 0;
+      }
+
+      body {
+        width: 48mm;
+        margin: 0;
+        padding: 1.5mm;
+        font-family: monospace;
+        line-height: 1.4;
+        font-size: 8pt;
+      }
+
+      .receipt-container {
+        width: 100%;
+        max-width: 45mm;
+        margin: 0 auto;
+      }
+
+      .logo {
+        width: 32mm;
+        margin: 0 auto;
+        display: block;
+      }
+
+      .header-text {
+        text-align: center;
+        margin: 1.5mm 0;
+        font-size: 8pt;
+      }
+
+      .contact-info {
+        text-align: center;
+        margin: 1mm 0;
+        font-size: 7pt;
+      }
+
+      .divider {
+        width: 100%;
+        border-bottom: 1px dashed #000;
+        margin: 1.5mm 0;
+      }
+
+      .date-time {
+        display: flex;
+        justify-content: space-between;
+        margin: 1.5mm 0;
+        font-size: 7pt;
+      }
+
+      .customer-info {
+        display: flex;
+        justify-content: space-between;
+        margin: 1.5mm 0;
+        font-size: 7pt;
+      }
+
+      .order-title {
+        text-align: center;
+        margin: 1.5mm 0;
+        font-weight: bold;
+        font-size: 8pt;
+      }
+
+      .order-item {
+        display: flex;
+        justify-content: space-between;
+        margin: 0.8mm 0;
+        white-space: pre;
+        font-size: 7pt;
+      }
+
+      .total-section {
+        margin-top: 1.5mm;
+      }
+
+      .total-line {
+        display: flex;
+        justify-content: space-between;
+        white-space: pre;
+        margin: 0.8mm 0;
+        font-size: 7pt;
+        width: 100%;
+      }
+
+      .price-align {
+        width: 80px;
+        text-align: right;
+      }
+
+      .footer {
+        text-align: center;
+        margin-top: 3mm;
+        font-size: 7pt;
+      }
+
+      .error-message {
+        text-align: center;
+        padding: 3mm;
+        color: red;
+        font-size: 7pt;
+      }
+
+      @media print {
         body {
-            width: 48mm;
-            margin: 0;
-            padding: 1.5mm;
-            font-family: monospace;
-            line-height: 1.4;
-            font-size: 8pt;
-        }
-
-        .receipt-container {
-            width: 100%;
-            max-width: 45mm;
-            margin: 0 auto;
-        }
-
-        .logo {
-            width: 32mm;
-            margin: 0 auto;
-            display: block;
-        }
-
-        .header-text {
-            text-align: center;
-            margin: 1.5mm 0;
-            font-size: 8pt;
-        }
-
-        .contact-info {
-            text-align: center;
-            margin: 1mm 0;
-            font-size: 7pt;
-        }
-
-        .divider {
-            width: 100%;
-            border-bottom: 1px dashed #000;
-            margin: 1.5mm 0;
-        }
-
-        .date-time {
-            display: flex;
-            justify-content: space-between;
-            margin: 1.5mm 0;
-            font-size: 7pt;
-        }
-
-        .customer-info {
-            display: flex;
-            justify-content: space-between;
-            margin: 1.5mm 0;
-            font-size: 7pt;
-        }
-
-        .order-title {
-            text-align: center;
-            margin: 1.5mm 0;
-            font-weight: bold;
-            font-size: 8pt;
+          width: 48mm;
+          -webkit-print-color-adjust: exact;
         }
 
         .order-item {
-            display: flex;
-            justify-content: space-between;
-            margin: 0.8mm 0;
-            white-space: pre;
-            font-size: 7pt;
+          page-break-inside: avoid;
         }
 
         .total-section {
-            margin-top: 1.5mm;
-        }
-
-        .total-line {
-            display: flex;
-            justify-content: space-between;
-            white-space: pre;
-            margin: 0.8mm 0;
-            font-size: 7pt;
-            width: 100%;
-        }
-
-        .price-align {
-            width: 80px;
-            text-align: right;
-        }
-
-        .footer {
-            text-align: center;
-            margin-top: 3mm;
-            font-size: 7pt;
+          page-break-inside: avoid;
         }
 
         .error-message {
-            text-align: center;
-            padding: 3mm;
-            color: red;
-            font-size: 7pt;
+          display: none;
         }
-
-        @media print {
-            body {
-                width: 48mm;
-                -webkit-print-color-adjust: exact;
-            }
-            
-            .order-item {
-                page-break-inside: avoid;
-            }
-            
-            .total-section {
-                page-break-inside: avoid;
-            }
-
-            .error-message {
-                display: none;
-            }
-        }
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="receipt-container">
-        <img src="/static/manokLogo.png" alt="Restaurant Logo" class="logo">
-        
-        <div class="header-text">
-            <strong>Sushi ● Ramen ● Japanese Cuisine</strong>
-        </div>
-        
-        <div class="contact-info">
-            Phone Number: 09773806856<br>
-            Address: 1364 Laong Laan Rd
-        </div>
-        
-        <div class="divider"></div>
-        
-        <div class="date-time">
-            <span>Date: <span id="receiptDate"></span></span>
-            <span>Time: <span id="receiptTime"></span></span>
-        </div>
+      <img src="/static/manokLogo.png" alt="Restaurant Logo" class="logo" />
 
-        <div class="customer-info">
-            <span>Daily #: <span id="dailyNumber"></span></span>
-            <span>Monthly #: <span id="monthlyNumber"></span></span>
-        </div>
-        
-        <div class="divider"></div>
-        
-        <div class="order-title">Order List</div>
-        
-        <div id="orderItems">
-            <!-- Order items will be inserted here by JavaScript -->
-        </div>
-        
-        <div class="divider"></div>
-        
-        <div class="total-section">
-            <div class="total-line">
-                <span>Total:</span>
-                <span id="totalAmount" class="price-align"></span>
-            </div>
-            <div class="total-line">
-                <span>After Discount:</span>
-                <span id="discountedAmount" class="price-align"></span>
-            </div>
-        </div>
+      <div class="header-text">
+        <strong>Sushi ● Ramen ● Japanese Cuisine</strong>
+      </div>
 
-        <div class="footer">
-            <p>Thank you for your purchase!</p>
-            <p>Please come again</p>
+      <div class="contact-info">
+        Phone Number: 09680918734<br />
+        Address: 1366-A Laong Laan Road
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="date-time">
+        <span>Date: <span id="receiptDate"></span></span>
+        <span>Time: <span id="receiptTime"></span></span>
+      </div>
+
+      <div class="customer-info">
+        <span>Daily #: <span id="dailyNumber"></span></span>
+        <span>Monthly #: <span id="monthlyNumber"></span></span>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="order-title">Order List</div>
+
+      <div id="orderItems">
+        <!-- Order items will be inserted here by JavaScript -->
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="total-section">
+        <div class="total-line">
+          <span>Total:</span>
+          <span id="totalAmount" class="price-align"></span>
         </div>
+        <div class="total-line">
+          <span>After Discount:</span>
+          <span id="discountedAmount" class="price-align"></span>
+        </div>
+      </div>
+
+      <div class="footer">
+        <p>Thank you for your purchase!</p>
+        <p>Please come again</p>
+      </div>
     </div>
 
     <script>
-        function getUrlParam(param) {
-            const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get(param);
-        }
+      function getUrlParam(param) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(param);
+      }
 
-        function formatOrderLine(quantity, name, price) {
-            const orderText = `${quantity}x ${name}`;
-            const priceText = `${price.toFixed(2)}`;
-            const maxNameWidth = 22; // Reduced width for name to align prices
-            const truncatedName = orderText.length > maxNameWidth 
-                ? orderText.substring(0, maxNameWidth - 3) + '...' 
-                : orderText;
-            const spaces = ' '.repeat(Math.max(1, maxNameWidth - truncatedName.length));
-            return `${truncatedName}${spaces}${priceText}`;
-        }
+      function formatOrderLine(quantity, name, price) {
+        const orderText = `${quantity}x ${name}`;
+        const priceText = `${price.toFixed(2)}`;
+        const maxNameWidth = 22; // Reduced width for name to align prices
+        const truncatedName =
+          orderText.length > maxNameWidth
+            ? orderText.substring(0, maxNameWidth - 3) + "..."
+            : orderText;
+        const spaces = " ".repeat(
+          Math.max(1, maxNameWidth - truncatedName.length)
+        );
+        return `${truncatedName}${spaces}${priceText}`;
+      }
 
-        function processReceiptData() {
-            try {
-                const items = JSON.parse(decodeURIComponent(getUrlParam('items')));
-                const dailyNumber = getUrlParam('dailyCustomerNumber');
-                const monthlyNumber = getUrlParam('monthlyCustomerNumber');
-                const orderDate = new Date(getUrlParam('date'));
-                const totalAmount = parseFloat(getUrlParam('totalAmount'));
-                const discountedTotal = parseFloat(getUrlParam('discountedTotal'));
+      function processReceiptData() {
+        try {
+          const items = JSON.parse(decodeURIComponent(getUrlParam("items")));
+          const dailyNumber = getUrlParam("dailyCustomerNumber");
+          const monthlyNumber = getUrlParam("monthlyCustomerNumber");
+          const orderDate = new Date(getUrlParam("date"));
+          const totalAmount = parseFloat(getUrlParam("totalAmount"));
+          const discountedTotal = parseFloat(getUrlParam("discountedTotal"));
 
-                document.getElementById('receiptDate').textContent = orderDate.toLocaleDateString();
-                document.getElementById('receiptTime').textContent = orderDate.toLocaleTimeString();
-                document.getElementById('dailyNumber').textContent = dailyNumber;
-                document.getElementById('monthlyNumber').textContent = monthlyNumber;
+          document.getElementById("receiptDate").textContent =
+            orderDate.toLocaleDateString();
+          document.getElementById("receiptTime").textContent =
+            orderDate.toLocaleTimeString();
+          document.getElementById("dailyNumber").textContent = dailyNumber;
+          document.getElementById("monthlyNumber").textContent = monthlyNumber;
 
-                const orderItemsDiv = document.getElementById('orderItems');
-                orderItemsDiv.innerHTML = '';
-                
-                items.forEach(item => {
-                    const orderItemDiv = document.createElement('div');
-                    orderItemDiv.className = 'order-item';
-                    orderItemDiv.textContent = formatOrderLine(
-                        item.quantity,
-                        item.name,
-                        item.price * item.quantity
-                    );
-                    orderItemsDiv.appendChild(orderItemDiv);
-                });
+          const orderItemsDiv = document.getElementById("orderItems");
+          orderItemsDiv.innerHTML = "";
 
-                document.getElementById('totalAmount').textContent = 
-                    `₱${totalAmount.toFixed(2)}`;
-                document.getElementById('discountedAmount').textContent = 
-                    `₱${discountedTotal.toFixed(2)}`;
+          items.forEach((item) => {
+            const orderItemDiv = document.createElement("div");
+            orderItemDiv.className = "order-item";
+            orderItemDiv.textContent = formatOrderLine(
+              item.quantity,
+              item.name,
+              item.price * item.quantity
+            );
+            orderItemsDiv.appendChild(orderItemDiv);
+          });
 
-                setTimeout(() => {
-                    window.print();
-                    setTimeout(() => window.close(), 500);
-                }, 500);
+          document.getElementById(
+            "totalAmount"
+          ).textContent = `₱${totalAmount.toFixed(2)}`;
+          document.getElementById(
+            "discountedAmount"
+          ).textContent = `₱${discountedTotal.toFixed(2)}`;
 
-            } catch (error) {
-                document.body.innerHTML = `
+          setTimeout(() => {
+            window.print();
+            setTimeout(() => window.close(), 500);
+          }, 500);
+        } catch (error) {
+          document.body.innerHTML = `
                     <div class="error-message">
                         <h2>Error Loading Receipt</h2>
                         <p>There was an error loading the receipt details.</p>
@@ -245,10 +251,10 @@
                         <p>URL Parameters: ${window.location.search}</p>
                     </div>
                 `;
-            }
         }
+      }
 
-        document.addEventListener('DOMContentLoaded', processReceiptData);
+      document.addEventListener("DOMContentLoaded", processReceiptData);
     </script>
-</body>
+  </body>
 </html>
