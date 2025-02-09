@@ -41,28 +41,6 @@ def init_db():
         )
     ''')
    
-    # Create customer_sequence table
-    c.execute('''
-        CREATE TABLE IF NOT EXISTS customer_sequence (
-            id INTEGER PRIMARY KEY,
-            daily_value INTEGER,
-            monthly_value INTEGER,
-            last_daily_reset DATE,
-            last_monthly_reset DATE
-        )
-    ''')
-   
-    # Initialize the sequence if it's empty
-    c.execute('SELECT daily_value FROM customer_sequence WHERE id = 1')
-    if not c.fetchone():
-        today = datetime.now().date()
-        c.execute('''
-            INSERT INTO customer_sequence (
-                id, daily_value, monthly_value, 
-                last_daily_reset, last_monthly_reset
-            ) VALUES (1, 1, 1, ?, ?)
-        ''', (today.strftime('%Y-%m-%d'), today.strftime('%Y-%m-%d')))
-   
     conn.commit()
     conn.close()
 
@@ -194,86 +172,6 @@ def add_order():
 
    return jsonify({'success': True, 'image_path': filename})
 
-def get_and_update_customer_numbers():
-    conn = sqlite3.connect('pos.db')
-    c = conn.cursor()
-    
-    try:
-        # Get current sequence info
-        c.execute('''
-            SELECT daily_value, monthly_value, 
-                   last_daily_reset, last_monthly_reset 
-            FROM customer_sequence WHERE id = 1
-        ''')
-        daily_value, monthly_value, last_daily_reset, last_monthly_reset = c.fetchone()
-        
-        # Convert stored dates to date objects
-        last_daily = datetime.strptime(last_daily_reset, '%Y-%m-%d').date()
-        today = datetime.now().date()
-        
-        # Check if we need to reset daily sequence (comparing actual dates)
-        if today != last_daily:
-            # Reset daily sequence to 1 and update last_daily_reset
-            daily_number = 1
-            c.execute('''
-                UPDATE customer_sequence 
-                SET daily_value = ?, last_daily_reset = ? 
-                WHERE id = 1
-            ''', (daily_number, today.strftime('%Y-%m-%d')))
-        else:
-            # Use current daily value as the customer number, then increment for next time
-            daily_number = daily_value + 1
-            c.execute('UPDATE customer_sequence SET daily_value = ? WHERE id = 1', (daily_number,))
-        
-        # Check if we need to reset monthly sequence
-        last_monthly = datetime.strptime(last_monthly_reset, '%Y-%m-%d').date()
-        if today.month != last_monthly.month:
-            # Reset monthly sequence to 1 and update last_monthly_reset
-            monthly_number = 1
-            c.execute('''
-                UPDATE customer_sequence 
-                SET monthly_value = ?, last_monthly_reset = ? 
-                WHERE id = 1
-            ''', (monthly_number, today.strftime('%Y-%m-%d')))
-        else:
-            # Use current monthly value, then increment for next time
-            monthly_number = monthly_value + 1
-            c.execute('UPDATE customer_sequence SET monthly_value = ? WHERE id = 1', (monthly_number,))
-        
-        conn.commit()
-        return daily_number, monthly_number
-        
-    finally:
-        conn.close()
-
-def reset_customer_sequence():
-    conn = sqlite3.connect('pos.db')
-    c = conn.cursor()
-    try:
-        today = datetime.now().date()
-        # Set both values to 1 and let the get_and_update function handle the increment
-        c.execute('''
-            UPDATE customer_sequence 
-            SET daily_value = 1,
-                monthly_value = 1,
-                last_daily_reset = ?,
-                last_monthly_reset = ?
-            WHERE id = 1
-        ''', (today.strftime('%Y-%m-%d'), today.strftime('%Y-%m-%d')))
-        
-        # If no rows were updated, insert initial values
-        if c.rowcount == 0:
-            c.execute('''
-                INSERT INTO customer_sequence (
-                    id, daily_value, monthly_value, 
-                    last_daily_reset, last_monthly_reset
-                ) VALUES (1, 1, 1, ?, ?)
-            ''', (today.strftime('%Y-%m-%d'), today.strftime('%Y-%m-%d')))
-        
-        conn.commit()
-    finally:
-        conn.close()
-
 @app.route('/get_orders/1')
 def get_orders():
    conn = sqlite3.connect('pos.db')
@@ -290,33 +188,63 @@ def receipt():
 @app.route('/place_order', methods=['POST'])
 def place_order():
     try:
+        
         order_data = request.json
         conn = sqlite3.connect('pos.db')
         c = conn.cursor()
         
-        daily_number, monthly_number = get_and_update_customer_numbers()
+        # daily_number, monthly_number = get_and_update_customer_numbers()
         
         # Make sure discounted_total has a default value if not provided
         discounted_total = order_data.get('discountedTotal', order_data['totalAmount'])
+        last_inserted = c.lastrowid
 
         c.execute('''
             INSERT INTO orders (
                 daily_customer_number, monthly_customer_number,
                 items, total_amount, discounted_total, order_date, status
-            ) VALUES (?, ?, ?, ?, ?, datetime('now', 'localtime'), 'pending')
+            )
+            VALUES (
+                COALESCE((
+                    SELECT daily_customer_number + 1 
+                    FROM orders 
+                    WHERE date(order_date) = date('now', 'localtime')
+                    ORDER BY order_date DESC 
+                    LIMIT 1
+                ), 1),
+                COALESCE((
+                    SELECT monthly_customer_number + 1 
+                    FROM orders 
+                    WHERE strftime('%Y-%m', order_date) = strftime('%Y-%m', 'now', 'localtime')
+                    ORDER BY order_date DESC 
+                    LIMIT 1
+                ), 1),
+                ?, ?, ?, datetime('now', 'localtime'), 'pending'
+            );
         ''', (
-            daily_number,
-            monthly_number,
             json.dumps(order_data['items']),
             order_data['totalAmount'],
             discounted_total
         ))
 
-        firebase.sync_order([daily_number, monthly_number, json.dumps(order_data['items']), order_data['totalAmount'], discounted_total, datetime.now()])
+        last_inserted = int(c.lastrowid)
+        print(last_inserted)
+
+        c.execute('''
+            SELECT daily_customer_number, monthly_customer_number FROM orders WHERE rowid = ?
+        ''', (last_inserted,))
+
+        daily_number, monthly_number = c.fetchone()
+
+        print(daily_number, monthly_number)
+
+        # firebase.sync_order([daily_number, monthly_number, json.dumps(order_data['items']), order_data['totalAmount'], discounted_total, str(datetime.now())])
         
         conn.commit()
         conn.close()
         
+        print('tite')
+
         return jsonify({
             'success': True,
             'daily_customer_number': daily_number,
