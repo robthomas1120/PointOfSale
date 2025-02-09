@@ -24,24 +24,43 @@ async function loadOrders() {
   try {
     console.log("Loading orders...");
     let data = [];
-    await db
-      .collection("orders")
-      .orderBy("order_date", "desc")
-      .get()
-      .then((querySnapshot) => {
-        querySnapshot.forEach((doc) => {
-          const body = doc.data();
-          data.push({
-            dailyCustomerNumber: Number(body.daily_customer_number),
-            monthlyCustomerNumber: Number(body.monthly_customer_number),
-            date: body.order_date,
-            totalAmount: Number(body.total_amount),
-            discountedTotal: Number(body.discounted_total),
-            items: JSON.parse(body.items),
-          });
-        });
+
+    const querySnapshot = await db.collection("orders").get();
+
+    querySnapshot.forEach((doc) => {
+      const body = doc.data();
+      // Parse the date string into a Date object
+      const orderDate = new Date(body.order_date);
+
+      data.push({
+        dailyCustomerNumber: Number(body.daily_customer_number),
+        monthlyCustomerNumber: Number(body.monthly_customer_number),
+        date: orderDate,
+        totalAmount: Number(body.total_amount),
+        discountedTotal: Number(body.discounted_total),
+        items: JSON.parse(body.items),
       });
-    console.log("Orders loaded:", data);
+    });
+
+    // Log dates before sorting for debugging
+    console.log(
+      "Before sorting:",
+      data.map((order) => order.date)
+    );
+
+    // Sort by date descending (most recent first)
+    data.sort((a, b) => {
+      // Ensure we're comparing Date objects
+      const dateA = a.date instanceof Date ? a.date : new Date(a.date);
+      const dateB = b.date instanceof Date ? b.date : new Date(b.date);
+      return dateB.getTime() - dateA.getTime();
+    });
+
+    // Log dates after sorting for verification
+    console.log(
+      "After sorting:",
+      data.map((order) => order.date)
+    );
 
     if (Array.isArray(data)) {
       orderHistory = data;
