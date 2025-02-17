@@ -237,8 +237,7 @@ def place_order():
 
         uuid, daily_number, monthly_number = c.fetchone()
 
-        # firebase.sync_order([daily_number, monthly_number, json.dumps(order_data['items']), order_data['totalAmount'], discounted_total, str(datetime.now())])
-        queue_fb_sync([uuid, daily_number, monthly_number, json.dumps(order_data['items']), order_data['totalAmount'], discounted_total, str(datetime.now())])
+        #queue_fb_sync([uuid, daily_number, monthly_number, json.dumps(order_data['items']), order_data['totalAmount'], discounted_total, str(datetime.now())])
 
         conn.commit()
         conn.close()
