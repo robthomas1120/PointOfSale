@@ -40,6 +40,18 @@ def init_db():
             synced BOOLEAN DEFAULT FALSE
         )
     ''')
+
+    c.execute("PRAGMA table_info(orders)")
+    columns = [column[1] for column in c.fetchall()]
+    if 'table_num' not in columns:
+        c.execute('''
+            ALTER TABLE orders ADD table_num INTEGER DEFAULT 1
+                  ''')
+    # Check if order_type exists before adding
+    if 'order_type' not in columns:
+        c.execute('''
+            ALTER TABLE orders ADD order_type BOOLEAN DEFAULT 1
+                    ''')
    
     conn.commit()
     conn.close()
