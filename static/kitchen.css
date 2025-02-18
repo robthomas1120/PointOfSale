@@ -8,6 +8,8 @@
     --accent-color: #4CAF50;
     --accent-hover: #45a049;
     --border-color: #404040;
+    --orange-accent: #ff9800;
+    --blue-accent: #2196F3;
 }
 
 * {
@@ -80,7 +82,7 @@ select:focus {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 20px;
-    align-items: start; /* This prevents cards from stretching */
+    align-items: start;
 }
 
 .order-card {
@@ -89,7 +91,7 @@ select:focus {
     padding: 25px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
-    height: fit-content; /* This makes the card only as tall as its content */
+    height: fit-content;
     display: flex;
     flex-direction: column;
 }
@@ -100,7 +102,7 @@ select:focus {
 }
 
 .order-card.pending {
-    border-left: 5px solid #ff9800;
+    border-left: 5px solid var(--orange-accent);
 }
 
 .order-card.completed {
@@ -110,7 +112,7 @@ select:focus {
 .order-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     margin-bottom: 15px;
     padding-bottom: 15px;
     border-bottom: 2px solid var(--border-color);
@@ -121,19 +123,35 @@ select:focus {
     color: var(--text-primary);
 }
 
+.order-info {
+    text-align: right;
+}
+
+.order-type {
+    font-weight: bold;
+    color: var(--orange-accent);
+    margin-bottom: 8px;
+}
+
+.table-number {
+    color: var(--blue-accent);
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
 .order-time {
     color: var(--text-secondary);
     font-size: 0.9em;
 }
 
 .order-items {
-    flex-grow: 1; /* This allows the items section to grow if needed */
+    flex-grow: 1;
     margin-bottom: 15px;
 }
 
 .order-item {
     display: flex;
-    justify-content: space-between;
+    align-items: center;
     padding: 8px 0;
     border-bottom: 1px solid var(--border-color);
 }
@@ -142,10 +160,15 @@ select:focus {
     border-bottom: none;
 }
 
-.item-quantity {
+.quantity {
     font-weight: bold;
-    margin-right: 10px;
-    color: #ff9800;
+    margin-right: 12px;
+    color: var(--orange-accent);
+    min-width: 40px;
+}
+
+.item-name {
+    color: var(--text-primary);
 }
 
 .order-actions {
@@ -164,6 +187,7 @@ select:focus {
     font-weight: 500;
     cursor: pointer;
     transition: all 0.3s ease;
+    width: 100%;
 }
 
 .complete-btn:hover {

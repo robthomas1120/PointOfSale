@@ -13,20 +13,42 @@ function createOrderCard(order) {
     card.className = `order-card ${order.status || 'pending'}`;
     card.id = `order-${order.id}`;
 
-    const items = JSON.parse(order.items);
+    // Parse items and ensure it's valid
+    let items;
+    try {
+        items = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
+    } catch (e) {
+        console.error('Error parsing items:', e);
+        items = [];
+    }
+
+    // Create items HTML with proper formatting
     const itemsHtml = items.map(item => `
         <div class="order-item">
-            <span><span class="item-quantity">x${item.quantity}</span> ${item.name}</span>
+            <span class="quantity">x${item.quantity}</span>
+            <span class="item-name">${item.name}</span>
         </div>
     `).join('');
+
+    // Format order type and table info
+    const orderTypeText = order.order_type === 1 ? 'Dine In' : 'Take Out';
+    const tableInfo = order.order_type === 1 ? `<div class="table-number">Table #${order.table_num || ''}</div>` : '';
+
+    // Ensure we have a valid date
+    const orderDate = order.order_date ? new Date(order.order_date) : new Date();
+    const formattedTime = isNaN(orderDate.getTime()) ? 'Invalid Date' : formatTime(orderDate);
 
     card.innerHTML = `
         <div class="order-header">
             <div class="order-number">
-                Daily #${order.dailyCustomerNumber}<br>
-                Monthly #${order.monthlyCustomerNumber}
+                Daily #${order.daily_customer_number || '---'}<br>
+                Monthly #${order.monthly_customer_number || '---'}
             </div>
-            <div class="order-time">${formatTime(order.date)}</div>
+            <div class="order-info">
+                <div class="order-type">${orderTypeText}</div>
+                ${tableInfo}
+                <div class="order-time">${formattedTime}</div>
+            </div>
         </div>
         <div class="order-items">
             ${itemsHtml}

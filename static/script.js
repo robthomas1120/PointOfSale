@@ -3,6 +3,27 @@ let cart = [];
 let allItems = []; // Store all items
 let searchInput; // Reference to search input
 
+document.addEventListener('DOMContentLoaded', function() {
+    const radioButtons = document.querySelectorAll('input[name="orderType"]');
+    radioButtons.forEach(radio => {
+        radio.addEventListener('change', function() {
+            const tableSelect = document.getElementById('tableSelectContainer');
+            if (tableSelect) {
+                tableSelect.style.display = this.value === "1" ? "block" : "none";
+            }
+        });
+    });
+    
+    // Set initial state of table select based on default radio selection
+    const initialOrderType = document.querySelector('input[name="orderType"]:checked');
+    if (initialOrderType) {
+        const tableSelect = document.getElementById('tableSelectContainer');
+        if (tableSelect) {
+            tableSelect.style.display = initialOrderType.value === "1" ? "block" : "none";
+        }
+    }
+});
+
 document.getElementById('orderNowBtn').addEventListener('click', async () => {
     if (cart.length === 0) return;
 
@@ -16,6 +37,10 @@ document.getElementById('orderNowBtn').addEventListener('click', async () => {
         return sum + (item.price * item.quantity);
     }, 0);
 
+    const selectedOrderType = document.querySelector('input[name="orderType"]:checked');
+    const orderType = selectedOrderType ? selectedOrderType.value : "1"; // Default to Dine In if nothing selected
+    const tableNum = orderType === "1" ? document.getElementById('tableNum').value : null;
+
     try {
         const response = await fetch('/place_order', {
             method: 'POST',
@@ -26,7 +51,9 @@ document.getElementById('orderNowBtn').addEventListener('click', async () => {
                 items: cart,
                 totalAmount: originalTotal,
                 discountedTotal: discountedTotal,
-                date: new Date().toISOString()
+                date: new Date().toISOString(),
+                orderType: parseInt(orderType),
+                tableNum: tableNum ? parseInt(tableNum) : null
             })
         });
 
@@ -40,7 +67,9 @@ document.getElementById('orderNowBtn').addEventListener('click', async () => {
                 date: new Date().toISOString(),
                 items: JSON.stringify(cart),
                 totalAmount: originalTotal,
-                discountedTotal: discountedTotal
+                discountedTotal: discountedTotal,
+                orderType: orderType,
+                tableNum: tableNum || ''
             });
 
             // Open receipt with parameters
@@ -54,11 +83,6 @@ document.getElementById('orderNowBtn').addEventListener('click', async () => {
                 console.error('Failed to open receipt window');
                 alert('Please allow pop-ups to print receipts');
             }
-
-            //alert(`Order placed successfully!\nDaily Customer #${result.daily_customer_number}\nMonthly Customer #${result.monthly_customer_number}`);
-            
-            // Open kitchen display
-            //window.open('/kitchen', 'kitchen_display', 'width=1200,height=800');
         } else {
             alert('Error placing order. Please try again.');
         }
