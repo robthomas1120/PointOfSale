@@ -50,16 +50,16 @@ class ExportDialog {
 
         document.body.insertAdjacentHTML('beforeend', dialogHTML);
         this.dialog = document.getElementById('exportDialog');
-        
+
         if (!this.dialog) {
             console.error('Failed to find export dialog element after creation');
             return;
         }
-        
+
         console.log('Setting up event listeners');
         this.dialog.querySelector('.close-button').addEventListener('click', () => this.hide());
         this.dialog.querySelector('.cancel-button').addEventListener('click', () => this.hide());
-        
+
         const formatButtons = this.dialog.querySelectorAll('.format-button');
         formatButtons.forEach(button => {
             button.addEventListener('click', () => {
@@ -85,22 +85,22 @@ class ExportDialog {
         console.log('Showing export dialog');
         console.log('Current filters:', currentFilters);
         console.log('Orders data length:', ordersData?.length);
-        
+
         this.ordersData = ordersData;
         this.currentFilters = currentFilters;
-        
+
         if (!this.dialog) {
             console.error('Dialog element not found');
             return;
         }
-        
+
         try {
-            document.getElementById('dateRangeInfo').textContent = 
+            document.getElementById('dateRangeInfo').textContent =
                 `${currentFilters.startDate || 'All'} to ${currentFilters.endDate || 'All'}`;
-            document.getElementById('timeRangeInfo').textContent = 
+            document.getElementById('timeRangeInfo').textContent =
                 `${currentFilters.startTime || 'All'} to ${currentFilters.endTime || 'All'}`;
             document.getElementById('sortByInfo').textContent = this.getSortByText(currentFilters.sortBy);
-            document.getElementById('sortOrderInfo').textContent = 
+            document.getElementById('sortOrderInfo').textContent =
                 currentFilters.sortOrder === 'asc' ? 'Ascending' : 'Descending';
         } catch (error) {
             console.error('Error updating filter info:', error);
@@ -152,7 +152,7 @@ class ExportDialog {
     handleExport(format) {
         console.log('Starting export process for format:', format);
         console.log('Orders data:', this.ordersData);
-        
+
         try {
             if (!Array.isArray(this.ordersData)) {
                 console.error('Invalid orders data type:', typeof this.ordersData);
@@ -164,7 +164,7 @@ class ExportDialog {
             const orders = this.ordersData.map(order => {
                 console.log('Processing order:', order.dailyCustomerNumber);
                 const { date, time } = this.formatDateTime(order.date);
-                
+
                 if (!Array.isArray(order.items)) {
                     console.error('Invalid items array for order:', order.dailyCustomerNumber);
                     throw new Error('Invalid items array');
@@ -205,7 +205,7 @@ class ExportDialog {
             if (typeof XLSX === 'undefined') {
                 throw new Error('XLSX library not found');
             }
-    
+
             console.log('Formatting data for Excel');
             const formattedData = data.map(order => {
                 // Format order details for better Excel display
@@ -213,22 +213,25 @@ class ExportDialog {
                     .split('\n')
                     .map(line => line.replace(/\s+/g, ' ').trim())
                     .join('\n');
-    
+
                 return {
                     'Daily #': order.dailyCustomerNumber,
                     'Date': order.date,
                     'Time': order.time,
                     'Order Details': orderDetails,
                     'Monthly #': order.monthlyCustomerNumber,
-                    'Total Amount': `PHP ` + `${Number(order.totalAmount).toFixed(2)}`,
-                    'Discounted Total': `PHP ` + `${Number(order.discountedTotal).toFixed(2)}`
+                    'Total Amount': Number(order.totalAmount),
+                    'Discounted Total': Number(order.discountedTotal)
                 };
             });
-    
+
             console.log('Creating Excel worksheet');
             // Create worksheet from data
-            const ws = XLSX.utils.json_to_sheet(formattedData);
-            
+            const ws = XLSX.utils.json_to_sheet(formattedData, {
+                cellDates: true,
+                dateNF: 'yyyy-mm-dd hh:mm:ss'
+            });
+
             // Set column widths
             const colWidths = [
                 { wch: 10 },  // Daily #
@@ -240,25 +243,36 @@ class ExportDialog {
                 { wch: 15 }   // Discounted Total
             ];
             ws['!cols'] = colWidths;
-    
+
+            // Apply number format to Total Amount and Discounted Total columns
+            const numFormat = '"₱"#,##0.00'; // Format as currency with 2 decimal places
+            const numCols = ['F', 'G']; // Columns for Total Amount and Discounted Total
+            formattedData.forEach((row, i) => {
+                numCols.forEach(col => {
+                    const cellAddress = col + (i + 2); // +2 to account for header row and 1-based indexing
+                    ws[cellAddress].t = 'n'; // 'n' for number
+                    ws[cellAddress].z = numFormat;
+                });
+            });
+
             // Set row height to accommodate multiple lines in Order Details
             const rowHeights = formattedData.map((_, idx) => ({ hpt: 25 }));
             ws['!rows'] = rowHeights;
-    
+
             // Create workbook and append worksheet
             console.log('Creating workbook');
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Orders");
-    
+
             // Generate filename with current date
             const date = new Date().toISOString().split('T')[0];
             const filename = `orders_export_${date}.xlsx`;
-            
+
             // Write file
             console.log('Saving Excel file:', filename);
             XLSX.writeFile(wb, filename);
             console.log('Excel export completed');
-    
+
             return true;
         } catch (error) {
             console.error('Error in exportToExcel:', error);
@@ -266,7 +280,7 @@ class ExportDialog {
             return false;
         }
     }
-    
+
     exportToPDF(data) {
         console.log('Starting PDF export');
         try {
@@ -274,14 +288,14 @@ class ExportDialog {
             if (!jsPDF) {
                 throw new Error('jsPDF not found');
             }
-    
+
             console.log('Creating PDF document');
             const doc = new jsPDF({
                 orientation: "landscape",
                 unit: "mm",
                 format: "a4"
             });
-    
+
             const headers = [
                 "Daily #",
                 "Date",
@@ -291,7 +305,7 @@ class ExportDialog {
                 "Total Amount",
                 "Discounted Total"
             ];
-    
+
             console.log('Preparing table data');
             const rows = data.map(order => {
                 const orderString = order.orderDetails
@@ -306,7 +320,7 @@ class ExportDialog {
                     `PHP ${Number(order.discountedTotal).toFixed(2)}`
                 ];
             });
-    
+
             console.log('Creating PDF table');
             doc.autoTable({
                 head: [headers],
@@ -345,23 +359,23 @@ class ExportDialog {
                 alternateRowStyles: {
                     fillColor: [248, 248, 248]
                 },
-                didParseCell: function(data) {
+                didParseCell: function (data) {
                     // Handle specific column alignments
                     if (data.column.index === 5 || data.column.index === 6) {
                         data.cell.styles.halign = 'right';
                     }
                 },
-                willDrawCell: function(data) {
+                willDrawCell: function (data) {
                     // Add padding for order details
                     if (data.column.index === 3) {
                         data.cell.styles.cellPadding = [3, 5, 3, 5];
                     }
                 }
             });
-    
+
             const date = new Date().toISOString().split('T')[0];
             const filename = `orders_export_${date}.pdf`;
-            
+
             console.log('Saving PDF file:', filename);
             doc.save(filename);
             console.log('PDF export completed');
@@ -370,5 +384,5 @@ class ExportDialog {
             alert('Error exporting to PDF: ' + error.message);
         }
     }
-    
+
 }
