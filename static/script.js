@@ -128,41 +128,34 @@ function updatePrice(itemName, currentPrice) {
         });
 }
 
-
 function deleteItem(itemName) {
-    const newPrice = prompt(`Enter new price for ${itemName} (current: ₱${currentPrice}):`, currentPrice);
+    const confirmation = confirm(`Are you sure you want to delete ${itemName}?`);
 
-    if (newPrice === null) return; // User cancelled
+    if (!confirmation) return; // User cancelled
 
-    const numericPrice = parseFloat(newPrice);
-    if (isNaN(numericPrice) || numericPrice <= 0) {
-        alert('Please enter a valid price greater than 0');
-        return;
-    }
-
-    fetch('/update_price', {
+    fetch('/delete_item', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-            item_name: itemName,
-            new_price: numericPrice
+            item_name: itemName
         })
     })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert(`Price updated successfully for ${itemName}`);
-                loadItems(); // Refresh the display
-            } else {
-                alert('Error updating price');
+                alert(`Succesfully deleted ${itemName}`);
+                loadItems();
+            }
+            else {
+                alert("Error updating price")
             }
         })
         .catch(error => {
-            console.error('Error:', error);
-            alert('Error updating price');
-        });
+            console.error("Error: ", error),
+                alert("Error updating price")
+        })
 }
 
 async function loadItems() {
@@ -326,10 +319,7 @@ function displayFilteredItems(items) {
 }
 
 document.getElementById('setPriceBtn').addEventListener('click', function () {
-    // Toggle active class
     this.classList.toggle('active');
-
-    // Set background color based on active state
     if (this.classList.contains('active')) {
         this.style.backgroundColor = '#ff9800';
         alert('Price Set Mode: Click on an item to update its price');
@@ -337,23 +327,24 @@ document.getElementById('setPriceBtn').addEventListener('click', function () {
         this.style.backgroundColor = '';
     }
 
-    // Get the delete button
     let deleteItemBtn = document.getElementById('deleteItemBtn');
-
-    // If delete button is active, deactivate it
     if (deleteItemBtn.classList.contains('active')) {
-        deleteItemBtn.classList.remove('active');
-        deleteItemBtn.style.backgroundColor = '';
+        deleteItemBtn.classList.toggle('active');
+        deleteItemBtn.style.backgroundColor = ''
     }
 
     displayFilteredItems(allItems);
 });
 
-document.getElementById('deleteItemBtn').addEventListener('click', function () {
-    // Toggle active class
-    this.classList.toggle('active');
+document.getElementById('kitchenBtn').addEventListener('click', function (e) {
+    e.preventDefault();
+    // Open two kitchen windows with unique names
+    window.open('/kitchen', 'kitchen_display_1', 'width=1200,height=800');
+    window.open('/kitchen', 'kitchen_display_2', 'width=1200,height=800');
+});
 
-    // Set background color based on active state
+document.getElementById('deleteItemBtn').addEventListener('click', function () {
+    this.classList.toggle('active');
     if (this.classList.contains('active')) {
         this.style.backgroundColor = '#ff9800';
         alert('Delete Mode: Click on an item to remove it.');
@@ -361,24 +352,13 @@ document.getElementById('deleteItemBtn').addEventListener('click', function () {
         this.style.backgroundColor = '';
     }
 
-    // Get the price button
     let setPriceBtn = document.getElementById('setPriceBtn');
-
-    // If price button is active, deactivate it
     if (setPriceBtn.classList.contains('active')) {
-        setPriceBtn.classList.remove('active');
+        setPriceBtn.classList.toggle('active');
         setPriceBtn.style.backgroundColor = '';
     }
 
     displayFilteredItems(allItems);
-});
-
-
-document.getElementById('kitchenBtn').addEventListener('click', function (e) {
-    e.preventDefault();
-    // Open two kitchen windows with unique names
-    window.open('/kitchen', 'kitchen_display_1', 'width=1200,height=800');
-    window.open('/kitchen', 'kitchen_display_2', 'width=1200,height=800');
 });
 
 // Initialize the menu

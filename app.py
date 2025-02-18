@@ -54,6 +54,28 @@ def index():
 def add_item_page():
     return render_template('add_item.html')
 
+@app.route('/delete_item', methods=['POST'])
+def delete_item():
+    try:
+        data = request.json
+        item_name = data['item_name']
+        
+        conn = sqlite3.connect('pos.db')
+        c = conn.cursor()
+
+        c.execute('''
+            DELETE FROM items 
+            WHERE item_name = ?
+        ''', (item_name,))
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({'success': True})
+    except Exception as e:
+        print(e)
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/update_price', methods=['POST'])
 def update_price():
     try:
