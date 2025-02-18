@@ -1,101 +1,142 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>POS Menu</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link rel="icon" href="{{ url_for('static', filename='transparentManok.png') }}">
-</head>
-<body>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+    <link
+      rel="icon"
+      href="{{ url_for('static', filename='transparentManok.png') }}"
+    />
+  </head>
+  <body>
     <div class="container">
-        <!-- Menu Section -->
-        <section class="menu-section">
-            <div class="header">
-                <h2>Menu Items</h2>
-                <div class="button-group">
-                    <button onclick="window.location.href='{{ url_for('add_item_page') }}'" class="add-button admin-only header-btn">Add Item</button>
-                    <button id="deleteItemBtn" class="set-price-button admin-only header-btn">Delete Item</button>
-                    <button id="setPriceBtn" class="set-price-button admin-only header-btn">Set Price</button>
-                    <button class="kitchen-button header-btn" id="kitchenBtn">Kitchen Display</button>
-                    <button onclick="window.location.href='{{ url_for('order_history') }}'" class="history-button header-btn">Order History</button>            
-                </div>
-            </div>
-            
-            <!-- Search Bar -->
-            <div class="search-container">
-                <input type="text" id="searchInput" placeholder="Search items..." class="search-bar">
-            </div>
+      <!-- Menu Section -->
+      <section class="menu-section">
+        <div class="header">
+          <h2>Menu Items</h2>
+          <div class="button-group">
+            <button
+              onclick="window.location.href='{{ url_for('add_item_page') }}'"
+              class="add-button admin-only header-btn"
+            >
+              Add Item
+            </button>
+            <button
+              id="deleteItemBtn"
+              class="set-price-button admin-only header-btn"
+            >
+              Delete Item
+            </button>
+            <button
+              id="setPriceBtn"
+              class="set-price-button admin-only header-btn"
+            >
+              Set Price
+            </button>
+            <button class="kitchen-button header-btn" id="kitchenBtn">
+              Kitchen Display
+            </button>
+            <button
+              onclick="window.location.href='{{ url_for('order_history') }}'"
+              class="history-button header-btn"
+            >
+              Order History
+            </button>
+          </div>
+        </div>
 
-            <!-- Menu Items Table -->
-            <table id="itemsTable">
-                <tbody id="itemsList">
-                </tbody>
-            </table>
-        </section>
-        
-        <!-- Cart Section -->
-        <section class="cart-section">
-            <div class="header">
-                <h2>Your Order</h2>
-            </div>
-            
-            <!-- Cart Items Table -->
-            <table id="cartTable">
-                <thead>
-                    <tr>
-                        <th scope="col">Discount</th>
-                        <th scope="col">Item</th>
-                        <th scope="col">Quantity</th>
-                        <th scope="col">Total</th>
-                    </tr>
-                </thead>
-                <tbody id="cartItems">
-                </tbody>
-            </table>
+        <!-- Search Bar -->
+        <div class="search-container">
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Search items..."
+            class="search-bar"
+          />
+        </div>
 
-            <div class="order-details">
-                <!-- Order Type Radio Buttons -->
-                <div class="order-type-group">
-                    <label>Order Type:</label>
-                    <div class="radio-group">
-                        <input type="radio" id="dineIn" name="orderType" value="1" checked>
-                        <label for="dineIn">Dine In</label>
-                        <input type="radio" id="takeOut" name="orderType" value="0">
-                        <label for="takeOut">Take Out</label>
-                    </div>
-                </div>
-                
-                <!-- Table Number Dropdown -->
-                <div class="table-select" id="tableSelectContainer">
-                    <label for="tableNum">Table Number:</label>
-                    <select id="tableNum">
-                        <option value="1">Table 1</option>
-                        <option value="2">Table 2</option>
-                        <option value="3">Table 3</option>
-                        <option value="4">Table 4</option>
-                        <option value="5">Table 5</option>
-                        <option value="6">Table 6</option>
-                        <option value="7">Table 7</option>
-                    </select>
-                </div>
+        <!-- Menu Items Table -->
+        <table id="itemsTable">
+          <tbody id="itemsList"></tbody>
+        </table>
+      </section>
+
+      <!-- Cart Section -->
+      <section class="cart-section">
+        <div class="header">
+          <h2>Your Order</h2>
+        </div>
+
+        <!-- Cart Items Table -->
+        <table id="cartTable">
+          <thead>
+            <tr>
+              <th scope="col">Discount</th>
+              <th scope="col">Item</th>
+              <th scope="col">Quantity</th>
+              <th scope="col">Total</th>
+            </tr>
+          </thead>
+          <tbody id="cartItems"></tbody>
+        </table>
+
+        <div class="order-details">
+          <div class="order-type-group">
+            <label>Order Type</label>
+            <div class="radio-group">
+              <label>
+                <input
+                  type="radio"
+                  id="dineIn"
+                  name="orderType"
+                  value="1"
+                  checked
+                />
+                Dine In
+              </label>
+              <label>
+                <input type="radio" id="takeOut" name="orderType" value="0" />
+                Take Out
+              </label>
             </div>
-            
-            <!-- Updated Total Section -->
-            <div class="total-section">
-                <div class="price-row">
-                    <span class="price-label">Original Price:</span>
-                    <span class="price-value">₱<span id="cartTotal">0.00</span></span>
-                </div>
-                <div class="price-row">
-                    <span class="price-label">Discounted Price:</span>
-                    <span class="price-value discounted-price">₱<span id="discountedTotal">0.00</span></span>
-                </div>
-                <button id="orderNowBtn" class="order-button">Order Now</button>
-            </div>
-        </section>
+          </div>
+
+          <div class="table-select" id="tableSelectContainer">
+            <label for="tableNum">Table Number</label>
+            <select id="tableNum">
+              <option value="1">Table 1</option>
+              <option value="2">Table 2</option>
+              <option value="3">Table 3</option>
+              <option value="4">Table 4</option>
+              <option value="5">Table 5</option>
+              <option value="6">Table 6</option>
+              <option value="7">Table 7</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Updated Total Section -->
+        <div class="total-section">
+          <div class="price-row">
+            <span class="price-label">Original Price:</span>
+            <span class="price-value">₱<span id="cartTotal">0.00</span></span>
+          </div>
+          <div class="price-row">
+            <span class="price-label">Discounted Price:</span>
+            <span class="price-value discounted-price"
+              >₱<span id="discountedTotal">0.00</span></span
+            >
+          </div>
+          <button id="orderNowBtn" class="order-button">Order Now</button>
+        </div>
+      </section>
     </div>
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>
-</body>
+  </body>
 </html>
