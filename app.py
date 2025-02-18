@@ -37,21 +37,11 @@ def init_db():
             discounted_total REAL,
             order_date DATETIME DEFAULT CURRENT_TIMESTAMP,
             status TEXT DEFAULT 'pending',
-            synced BOOLEAN DEFAULT FALSE
+            synced BOOLEAN DEFAULT FALSE,
+            table_num INTEGER DEFAULT 1,
+            order_type BOOLEAN DEFAULT 1
         )
     ''')
-
-    c.execute("PRAGMA table_info(orders)")
-    columns = [column[1] for column in c.fetchall()]
-    if 'table_num' not in columns:
-        c.execute('''
-            ALTER TABLE orders ADD table_num INTEGER DEFAULT 1
-                  ''')
-    # Check if order_type exists before adding
-    if 'order_type' not in columns:
-        c.execute('''
-            ALTER TABLE orders ADD order_type BOOLEAN DEFAULT 1
-                    ''')
    
     conn.commit()
     conn.close()
@@ -101,10 +91,9 @@ def get_kitchen_orders():
         conn = sqlite3.connect('pos.db')
         c = conn.cursor()
         
-        # Only get orders with status 'pending' or NULL status
         c.execute('''
             SELECT id, daily_customer_number, monthly_customer_number, 
-                   items, total_amount, order_date
+                   items, total_amount, order_date, table_num, order_type
             FROM orders
             WHERE (status IS NULL OR status = 'pending')
                 AND order_date >= datetime('now', '-1 day')
@@ -113,15 +102,16 @@ def get_kitchen_orders():
         
         orders = []
         for row in c.fetchall():
-            print(row)
             try:
                 orders.append({
                     'id': row[0],
-                    'dailyCustomerNumber': row[1],
-                    'monthlyCustomerNumber': row[2],
+                    'daily_customer_number': row[1],
+                    'monthly_customer_number': row[2],
                     'items': row[3],
                     'totalAmount': row[4],
                     'date': row[5],
+                    'table_num': row[6],
+                    'order_type': row[7],
                     'status': 'pending'
                 })
             except Exception as row_error:
@@ -201,21 +191,20 @@ def receipt():
 @app.route('/place_order', methods=['POST'])
 def place_order():
     try:
-        
         order_data = request.json
         conn = sqlite3.connect('pos.db')
         c = conn.cursor()
         
-        # daily_number, monthly_number = get_and_update_customer_numbers()
-        
-        # Make sure discounted_total has a default value if not provided
+        # Get table_num and order_type from request
+        table_num = order_data.get('tableNum', 1)  # Default to 1 if not provided
+        order_type = order_data.get('orderType', 1)  # Default to 1 (Dine In) if not provided
         discounted_total = order_data.get('discountedTotal', order_data['totalAmount'])
-        last_inserted = c.lastrowid
 
         c.execute('''
             INSERT INTO orders (
                 daily_customer_number, monthly_customer_number,
-                items, total_amount, discounted_total, order_date, status
+                items, total_amount, discounted_total, order_date, status,
+                table_num, order_type
             )
             VALUES (
                 COALESCE((
@@ -232,24 +221,24 @@ def place_order():
                     ORDER BY order_date DESC 
                     LIMIT 1
                 ), 1),
-                ?, ?, ?, datetime('now', 'localtime'), 'pending'
+                ?, ?, ?, datetime('now', 'localtime'), 'pending', ?, ?
             );
         ''', (
             json.dumps(order_data['items']),
             order_data['totalAmount'],
-            discounted_total
+            discounted_total,
+            table_num,
+            order_type
         ))
 
         last_inserted = int(c.lastrowid)
-        print(last_inserted)
-
+        
         c.execute('''
-            SELECT id, daily_customer_number, monthly_customer_number FROM orders WHERE rowid = ?
+            SELECT id, daily_customer_number, monthly_customer_number 
+            FROM orders WHERE rowid = ?
         ''', (last_inserted,))
 
         uuid, daily_number, monthly_number = c.fetchone()
-
-        #queue_fb_sync([uuid, daily_number, monthly_number, json.dumps(order_data['items']), order_data['totalAmount'], discounted_total, str(datetime.now())])
 
         conn.commit()
         conn.close()
@@ -272,7 +261,8 @@ def get_orders_history():
     
     c.execute('''
         SELECT daily_customer_number, monthly_customer_number, 
-               items, total_amount, discounted_total, order_date
+               items, total_amount, discounted_total, order_date,
+               table_num, order_type
         FROM orders
         ORDER BY order_date DESC
     ''')
@@ -284,8 +274,10 @@ def get_orders_history():
             'monthlyCustomerNumber': row[1],
             'items': json.loads(row[2]),
             'totalAmount': row[3],
-            'discountedTotal': row[4] if row[4] is not None else row[3],  # Use total_amount if discounted is NULL
-            'date': row[5]
+            'discountedTotal': row[4] if row[4] is not None else row[3],
+            'date': row[5],
+            'table_num': row[6],
+            'order_type': row[7]
         })
     
     conn.close()

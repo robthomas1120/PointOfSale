@@ -128,6 +128,13 @@
         .error-message {
           display: none;
         }
+
+        .order-details {
+          display: flex;
+          justify-content: space-between;
+          margin: 1.5mm 0;
+          font-size: 7pt;
+        }
       }
     </style>
   </head>
@@ -155,6 +162,11 @@
         <span>Daily #: <span id="dailyNumber"></span></span>
         <span>Monthly #: <span id="monthlyNumber"></span></span>
       </div>
+
+      <div class="order-details">
+        <span>Order Type: <span id="orderType"></span></span>
+        <span id="tableInfo"></span>
+    </div>
 
       <div class="divider"></div>
 
@@ -211,6 +223,8 @@
           const orderDate = new Date(getUrlParam("date"));
           const totalAmount = parseFloat(getUrlParam("totalAmount"));
           const discountedTotal = parseFloat(getUrlParam("discountedTotal"));
+          const orderType = getUrlParam("orderType") === "1" ? "Dine In" : "Take Out";
+          const tableNum = getUrlParam("tableNum");
 
           document.getElementById("receiptDate").textContent =
             orderDate.toLocaleDateString();
@@ -218,6 +232,10 @@
             orderDate.toLocaleTimeString();
           document.getElementById("dailyNumber").textContent = dailyNumber;
           document.getElementById("monthlyNumber").textContent = monthlyNumber;
+          document.getElementById("orderType").textContent = orderType;
+          if (orderType === "Dine In" && tableNum) {
+              document.getElementById("tableInfo").textContent = `Table #${tableNum}`;
+          }
 
           const orderItemsDiv = document.getElementById("orderItems");
           orderItemsDiv.innerHTML = "";
