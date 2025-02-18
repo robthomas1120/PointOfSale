@@ -3,17 +3,17 @@ let cart = [];
 let allItems = []; // Store all items
 let searchInput; // Reference to search input
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const radioButtons = document.querySelectorAll('input[name="orderType"]');
     radioButtons.forEach(radio => {
-        radio.addEventListener('change', function() {
+        radio.addEventListener('change', function () {
             const tableSelect = document.getElementById('tableSelectContainer');
             if (tableSelect) {
                 tableSelect.style.display = this.value === "1" ? "block" : "none";
             }
         });
     });
-    
+
     // Set initial state of table select based on default radio selection
     const initialOrderType = document.querySelector('input[name="orderType"]:checked');
     if (initialOrderType) {
@@ -59,7 +59,7 @@ document.getElementById('orderNowBtn').addEventListener('click', async () => {
 
         if (response.ok) {
             const result = await response.json();
-            
+
             // Create URL parameters for receipt
             const receiptParams = new URLSearchParams({
                 dailyCustomerNumber: result.daily_customer_number,
@@ -74,7 +74,7 @@ document.getElementById('orderNowBtn').addEventListener('click', async () => {
 
             // Open receipt with parameters
             const receiptWindow = window.open(`/receipt?${receiptParams.toString()}`, '_blank');
-            
+
             if (receiptWindow) {
                 // Clear cart and update display
                 cart = [];
@@ -94,9 +94,9 @@ document.getElementById('orderNowBtn').addEventListener('click', async () => {
 
 function updatePrice(itemName, currentPrice) {
     const newPrice = prompt(`Enter new price for ${itemName} (current: ₱${currentPrice}):`, currentPrice);
-    
+
     if (newPrice === null) return; // User cancelled
-    
+
     const numericPrice = parseFloat(newPrice);
     if (isNaN(numericPrice) || numericPrice <= 0) {
         alert('Please enter a valid price greater than 0');
@@ -113,19 +113,56 @@ function updatePrice(itemName, currentPrice) {
             new_price: numericPrice
         })
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert(`Price updated successfully for ${itemName}`);
-            loadItems(); // Refresh the display
-        } else {
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(`Price updated successfully for ${itemName}`);
+                loadItems(); // Refresh the display
+            } else {
+                alert('Error updating price');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
             alert('Error updating price');
-        }
+        });
+}
+
+
+function deleteItem(itemName) {
+    const newPrice = prompt(`Enter new price for ${itemName} (current: ₱${currentPrice}):`, currentPrice);
+
+    if (newPrice === null) return; // User cancelled
+
+    const numericPrice = parseFloat(newPrice);
+    if (isNaN(numericPrice) || numericPrice <= 0) {
+        alert('Please enter a valid price greater than 0');
+        return;
+    }
+
+    fetch('/update_price', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            item_name: itemName,
+            new_price: numericPrice
+        })
     })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error updating price');
-    });
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(`Price updated successfully for ${itemName}`);
+                loadItems(); // Refresh the display
+            } else {
+                alert('Error updating price');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error updating price');
+        });
 }
 
 async function loadItems() {
@@ -133,11 +170,11 @@ async function loadItems() {
         const response = await fetch('/get_orders/1');
         const items = await response.json();
         allItems = items; // Store all items
-        
+
         // Initialize search input
         searchInput = document.getElementById('searchInput');
         searchInput.addEventListener('input', handleSearch);
-        
+
         displayFilteredItems(items); // Display all items initially
     } catch (error) {
         console.error('Error:', error);
@@ -146,7 +183,7 @@ async function loadItems() {
 
 function addToCart(name, price, imagePath) {
     const existingItem = cart.find(item => item.name === name);
-    
+
     if (existingItem) {
         existingItem.quantity += 1;
     } else {
@@ -160,13 +197,13 @@ function addToCart(name, price, imagePath) {
         cart.push(newItem);
         console.log('Added item to cart:', newItem); // Debug log
     }
-    
+
     updateCartDisplay();
 }
 
 function removeFromCart(index) {
     const item = cart[index];
-    
+
     if (item.quantity > 1) {
         // If quantity is more than 1, decrease by 1
         item.quantity -= 1;
@@ -174,7 +211,7 @@ function removeFromCart(index) {
         // If quantity is 1, remove the item completely
         cart.splice(index, 1);
     }
-    
+
     console.log('Updated cart after removal:', cart); // Debug log
     updateCartDisplay();
 }
@@ -183,7 +220,7 @@ function updateCartDisplay() {
     const cartItems = document.getElementById('cartItems');
     const cartTotal = document.getElementById('cartTotal');
     const discountedTotal = document.getElementById('discountedTotal');
-    
+
     console.log('Updating cart display with data:', cart); // Debug log
 
     // Display cart items
@@ -204,7 +241,7 @@ function updateCartDisplay() {
             <td onclick="removeFromCart(${index})">₱${(item.price * item.quantity).toFixed(2)}</td>
         </tr>
     `).join('');
-    
+
     // Calculate totals
     const originalTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     const discountedItems = cart.reduce((sum, item) => {
@@ -215,7 +252,7 @@ function updateCartDisplay() {
         }
         return sum + (item.price * item.quantity);
     }, 0);
-    
+
     cartTotal.textContent = originalTotal.toFixed(2);
     discountedTotal.textContent = discountedItems.toFixed(2);
 
@@ -227,10 +264,10 @@ function updateCartDisplay() {
 function toggleDiscount(index) {
     // Check if any other item is already discounted
     const hasExistingDiscount = cart.some((item, idx) => idx !== index && item.discounted);
-    
+
     // Get the checkbox that was clicked
     const checkbox = document.getElementById(`discount-${index}`);
-    
+
     // If trying to check a box when another is already checked
     if (!cart[index].discounted && hasExistingDiscount) {
         // Uncheck the box that was just clicked
@@ -239,7 +276,7 @@ function toggleDiscount(index) {
         alert("Warning: Only one item can be discounted at a time. Please uncheck the existing discounted item first.");
         return;
     }
-    
+
     // If we get here, either we're unchecking a box or we're checking the first box
     cart[index].discounted = checkbox.checked;
     console.log('Updated cart after toggling discount:', cart); // Debug log
@@ -248,7 +285,7 @@ function toggleDiscount(index) {
 
 function handleSearch(e) {
     const searchTerm = e.target.value.toLowerCase();
-    const filteredItems = allItems.filter(item => 
+    const filteredItems = allItems.filter(item =>
         item.item_name.toLowerCase().includes(searchTerm)
     );
     displayFilteredItems(filteredItems);
@@ -257,30 +294,87 @@ function handleSearch(e) {
 function displayFilteredItems(items) {
     const itemsList = document.getElementById('itemsList');
     const isPriceMode = document.getElementById('setPriceBtn').classList.contains('active');
-    
-    itemsList.innerHTML = items.map(item => `
-        <tr class="menu-item" onclick="${isPriceMode ? 
-            `updatePrice('${item.item_name}', ${item.price})` : 
-            `addToCart('${item.item_name}', ${item.price}, '${item.image_path}')`}">
+    const isDeleteMode = document.getElementById('deleteItemBtn').classList.contains('active');
+
+    if (isPriceMode) {
+        itemsList.innerHTML = items.map(item => `
+        <tr class="menu-item" onclick="${`updatePrice('${item.item_name}', ${item.price})`}">
             <td><img src="/static/uploads/${item.image_path}" alt="${item.item_name}"></td>
             <td>${item.item_name}</td>
             <td>₱${item.price}</td>
         </tr>
     `).join('');
+    }
+    else if (isDeleteMode) {
+        itemsList.innerHTML = items.map(item => `
+            <tr class="menu-item" onclick="${`deleteItem('${item.item_name}')`}">
+                <td><img src="/static/uploads/${item.image_path}" alt="${item.item_name}"></td>
+                <td>${item.item_name}</td>
+                <td>₱${item.price}</td>
+            </tr>
+        `).join('');
+    }
+    else {
+        itemsList.innerHTML = items.map(item => `
+        <tr class="menu-item" onclick="${`addToCart('${item.item_name}', ${item.price}, '${item.image_path}')`}">
+            <td><img src="/static/uploads/${item.image_path}" alt="${item.item_name}"></td>
+            <td>${item.item_name}</td>
+            <td>₱${item.price}</td>
+        </tr>
+        `).join('');
+    }
 }
 
-document.getElementById('setPriceBtn').addEventListener('click', function() {
+document.getElementById('setPriceBtn').addEventListener('click', function () {
+    // Toggle active class
     this.classList.toggle('active');
+
+    // Set background color based on active state
     if (this.classList.contains('active')) {
         this.style.backgroundColor = '#ff9800';
         alert('Price Set Mode: Click on an item to update its price');
     } else {
         this.style.backgroundColor = '';
     }
+
+    // Get the delete button
+    let deleteItemBtn = document.getElementById('deleteItemBtn');
+
+    // If delete button is active, deactivate it
+    if (deleteItemBtn.classList.contains('active')) {
+        deleteItemBtn.classList.remove('active');
+        deleteItemBtn.style.backgroundColor = '';
+    }
+
     displayFilteredItems(allItems);
 });
 
-document.getElementById('kitchenBtn').addEventListener('click', function(e) {
+document.getElementById('deleteItemBtn').addEventListener('click', function () {
+    // Toggle active class
+    this.classList.toggle('active');
+
+    // Set background color based on active state
+    if (this.classList.contains('active')) {
+        this.style.backgroundColor = '#ff9800';
+        alert('Delete Mode: Click on an item to remove it.');
+    } else {
+        this.style.backgroundColor = '';
+    }
+
+    // Get the price button
+    let setPriceBtn = document.getElementById('setPriceBtn');
+
+    // If price button is active, deactivate it
+    if (setPriceBtn.classList.contains('active')) {
+        setPriceBtn.classList.remove('active');
+        setPriceBtn.style.backgroundColor = '';
+    }
+
+    displayFilteredItems(allItems);
+});
+
+
+document.getElementById('kitchenBtn').addEventListener('click', function (e) {
     e.preventDefault();
     // Open two kitchen windows with unique names
     window.open('/kitchen', 'kitchen_display_1', 'width=1200,height=800');

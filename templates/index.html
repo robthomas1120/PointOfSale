@@ -15,6 +15,7 @@
                 <h2>Menu Items</h2>
                 <div class="button-group">
                     <button onclick="window.location.href='{{ url_for('add_item_page') }}'" class="add-button admin-only header-btn">Add Item</button>
+                    <button id="deleteItemBtn" class="set-price-button admin-only header-btn">Delete Item</button>
                     <button id="setPriceBtn" class="set-price-button admin-only header-btn">Set Price</button>
                     <button class="kitchen-button header-btn" id="kitchenBtn">Kitchen Display</button>
                     <button onclick="window.location.href='{{ url_for('order_history') }}'" class="history-button header-btn">Order History</button>            
