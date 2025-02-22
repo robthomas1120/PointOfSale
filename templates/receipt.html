@@ -147,8 +147,8 @@
       </div>
 
       <div class="contact-info">
-        Phone Number: 09773806856<br />
-        Address: 1364 Laong Laan Rd
+        Phone Number: 09680918734<br />
+        Address: 1366 Laong Laan Rd.
       </div>
 
       <div class="divider"></div>
@@ -166,7 +166,7 @@
       <div class="order-details">
         <span>Order Type: <span id="orderType"></span></span>
         <span id="tableInfo"></span>
-    </div>
+      </div>
 
       <div class="divider"></div>
 
@@ -207,9 +207,9 @@
         const maxNameWidth = 22; // Reduced width for name to align prices
         const truncatedName =
           orderText.length > maxNameWidth
-            ? orderText.substring(0, maxNameWidth - 3) + "..."
+            ? orderText.substring(0, maxNameWidth - 3) + '...'
             : orderText;
-        const spaces = " ".repeat(
+        const spaces = ' '.repeat(
           Math.max(1, maxNameWidth - truncatedName.length)
         );
         return `${truncatedName}${spaces}${priceText}`;
@@ -217,32 +217,35 @@
 
       function processReceiptData() {
         try {
-          const items = JSON.parse(decodeURIComponent(getUrlParam("items")));
-          const dailyNumber = getUrlParam("dailyCustomerNumber");
-          const monthlyNumber = getUrlParam("monthlyCustomerNumber");
-          const orderDate = new Date(getUrlParam("date"));
-          const totalAmount = parseFloat(getUrlParam("totalAmount"));
-          const discountedTotal = parseFloat(getUrlParam("discountedTotal"));
-          const orderType = getUrlParam("orderType") === "1" ? "Dine In" : "Take Out";
-          const tableNum = getUrlParam("tableNum");
+          const items = JSON.parse(decodeURIComponent(getUrlParam('items')));
+          const dailyNumber = getUrlParam('dailyCustomerNumber');
+          const monthlyNumber = getUrlParam('monthlyCustomerNumber');
+          const orderDate = new Date(getUrlParam('date'));
+          const totalAmount = parseFloat(getUrlParam('totalAmount'));
+          const discountedTotal = parseFloat(getUrlParam('discountedTotal'));
+          const orderType =
+            getUrlParam('orderType') === '1' ? 'Dine In' : 'Take Out';
+          const tableNum = getUrlParam('tableNum');
 
-          document.getElementById("receiptDate").textContent =
+          document.getElementById('receiptDate').textContent =
             orderDate.toLocaleDateString();
-          document.getElementById("receiptTime").textContent =
+          document.getElementById('receiptTime').textContent =
             orderDate.toLocaleTimeString();
-          document.getElementById("dailyNumber").textContent = dailyNumber;
-          document.getElementById("monthlyNumber").textContent = monthlyNumber;
-          document.getElementById("orderType").textContent = orderType;
-          if (orderType === "Dine In" && tableNum) {
-              document.getElementById("tableInfo").textContent = `Table #${tableNum}`;
+          document.getElementById('dailyNumber').textContent = dailyNumber;
+          document.getElementById('monthlyNumber').textContent = monthlyNumber;
+          document.getElementById('orderType').textContent = orderType;
+          if (orderType === 'Dine In' && tableNum) {
+            document.getElementById(
+              'tableInfo'
+            ).textContent = `Table #${tableNum}`;
           }
 
-          const orderItemsDiv = document.getElementById("orderItems");
-          orderItemsDiv.innerHTML = "";
+          const orderItemsDiv = document.getElementById('orderItems');
+          orderItemsDiv.innerHTML = '';
 
           items.forEach((item) => {
-            const orderItemDiv = document.createElement("div");
-            orderItemDiv.className = "order-item";
+            const orderItemDiv = document.createElement('div');
+            orderItemDiv.className = 'order-item';
             orderItemDiv.textContent = formatOrderLine(
               item.quantity,
               item.name,
@@ -252,10 +255,10 @@
           });
 
           document.getElementById(
-            "totalAmount"
+            'totalAmount'
           ).textContent = `₱${totalAmount.toFixed(2)}`;
           document.getElementById(
-            "discountedAmount"
+            'discountedAmount'
           ).textContent = `₱${discountedTotal.toFixed(2)}`;
 
           setTimeout(() => {
@@ -274,7 +277,7 @@
         }
       }
 
-      document.addEventListener("DOMContentLoaded", processReceiptData);
+      document.addEventListener('DOMContentLoaded', processReceiptData);
     </script>
   </body>
 </html>
